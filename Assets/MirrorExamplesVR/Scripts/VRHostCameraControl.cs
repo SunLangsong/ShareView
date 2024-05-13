@@ -60,14 +60,14 @@ public class VRHostCameraControl : NetworkBehaviour
                 // Debug.Log(receivedPosition);
                 //Camera.main.transform.parent.position = receivedPosition;
                 //Camera.main.transform.parent.rotation = receivedRotation;
-                maincamera.GetComponent<TrackedPoseDriver>().trackingType = TrackedPoseDriver.TrackingType.PositionOnly;
-                //maincamera.GetComponent<TrackedPoseDriver>().enabled = false;
+                //maincamera.GetComponent<TrackedPoseDriver>().trackingType = TrackedPoseDriver.TrackingType.PositionOnly;
+                maincamera.GetComponent<TrackedPoseDriver>().enabled = false;
                 //Camera.main.transform.parent.position = new Vector3(syncedPosition.x, 0, syncedPosition.z);
             
                 //Camera.main.transform.parent.rotation = syncedRotation;
                 //maincamera.transform.position = new Vector3(syncedPosition.x, syncedPosition.y, syncedPosition.z);
-                //maincamera.transform.parent.position = syncedPosition;
-                maincamera.transform.parent.position = new Vector3(syncedPosition.x, syncedPosition.y-1.3614f, syncedPosition.z);
+                maincamera.transform.position = syncedPosition;
+                //maincamera.transform.parent.position = new Vector3(syncedPosition.x, syncedPosition.y-1.3614f, syncedPosition.z);
                 maincamera.transform.rotation = syncedRotation;
                 //leftHandPosition.position += syncedPosition;
                 //rightHandPosition.position += syncedPosition;
