@@ -15,7 +15,7 @@ public class VRCanvasHUD : MonoBehaviour
     readonly Dictionary<long, ServerResponse> discoveredServers = new Dictionary<long, ServerResponse>();
     private TouchScreenKeyboard keyboard;
     private int keyboardStatus = 0;
-
+    public GameObject dropdown;
     // UI
     public GameObject PanelStart, PanelStop;
     public Button buttonHost, buttonServer, buttonClient, buttonStop, buttonAuto;
@@ -108,7 +108,7 @@ public class VRCanvasHUD : MonoBehaviour
         SetupInfoText("Starting as client.");
         discoveredServers.Clear();
         networkDiscovery.StartDiscovery();
-        
+        dropdown.SetActive(true);
     }
 
     public void ButtonStop()

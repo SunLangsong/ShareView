@@ -1,13 +1,18 @@
 using Mirror;
+using TMPro;
 using UnityEngine;
 using UnityEngine.InputSystem.XR;
-
+using UnityEngine.UI;
+using UnityEngine.XR;
 public class VRHostCameraControl : NetworkBehaviour
 {
     // 在Inspector中指定服务器的摄像机对象
     public Transform serverCameraTransform;
-    public Transform serverPlayerTransform;
+    //public Transform serverPlayerTransform;
 
+    public Transform leftHandPosition;
+    public Transform rightHandPosition;
+    private TMP_Dropdown dropdownfps;
     // 用于存储接收到的数据，可能还需要进一步处理
     private Vector3 receivedPosition;
     private Quaternion receivedRotation;
@@ -15,7 +20,9 @@ public class VRHostCameraControl : NetworkBehaviour
     private GameObject maincamera;
     private GameObject subcamera;
     private float nextFrameTime = 0.0f;
-    private float frameRateInterval = 1.0f / 15.0f;
+    private float frameRateInterval;
+    InputDevice leftHandDevice;
+    InputDevice rightHandDevice;
     [SyncVar]
     private Vector3 syncedPosition;
     [SyncVar]
@@ -24,6 +31,10 @@ public class VRHostCameraControl : NetworkBehaviour
     void Start(){
         maincamera = GameObject.FindWithTag("MainCamera");
         subcamera = GameObject.FindWithTag("SubCamera");
+        leftHandDevice = InputDevices.GetDeviceAtXRNode(XRNode.LeftHand);
+        rightHandDevice = InputDevices.GetDeviceAtXRNode(XRNode.RightHand);
+        dropdownfps = GameObject.FindGameObjectWithTag("Fpselect").GetComponent<TMP_Dropdown>();
+        frameRateInterval = 1.0f / ((dropdownfps.value + 1) * 5);
     }
     void Update()
     {
@@ -49,14 +60,20 @@ public class VRHostCameraControl : NetworkBehaviour
                 // Debug.Log(receivedPosition);
                 //Camera.main.transform.parent.position = receivedPosition;
                 //Camera.main.transform.parent.rotation = receivedRotation;
-                maincamera.GetComponent<TrackedPoseDriver>().enabled = false;
+                maincamera.GetComponent<TrackedPoseDriver>().trackingType = TrackedPoseDriver.TrackingType.PositionOnly;
+                //maincamera.GetComponent<TrackedPoseDriver>().enabled = false;
                 //Camera.main.transform.parent.position = new Vector3(syncedPosition.x, 0, syncedPosition.z);
             
                 //Camera.main.transform.parent.rotation = syncedRotation;
-                maincamera.transform.position = new Vector3(syncedPosition.x, syncedPosition.y, syncedPosition.z);
-            
+                //maincamera.transform.position = new Vector3(syncedPosition.x, syncedPosition.y, syncedPosition.z);
+                //maincamera.transform.parent.position = syncedPosition;
+                maincamera.transform.parent.position = new Vector3(syncedPosition.x, syncedPosition.y-1.3614f, syncedPosition.z);
                 maincamera.transform.rotation = syncedRotation;
-
+                //leftHandPosition.position += syncedPosition;
+                //rightHandPosition.position += syncedPosition;
+                //leftHandDevi;
+                //Debug.Log(frameRateInterval);
+                frameRateInterval = 1.0f / ((dropdownfps.value + 1) * 5);
                 //serverPlayerTransform.position = receivedPosition;
                 //serverPlayerTransform.rotation = receivedRotation;
             }

@@ -25,7 +25,7 @@ Transform:
   m_GameObject: {fileID: 1939348062}
   serializedVersion: 2
   m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
-  m_LocalPosition: {x: 0, y: 0.1, z: 0}
+  m_LocalPosition: {x: 0, y: 0.1, z: -0.121}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children:
@@ -199,7 +199,7 @@ GameObject:
   - component: {fileID: 1741081719}
   - component: {fileID: 7945685794707161391}
   - component: {fileID: 5292069082588018087}
-  - component: {fileID: 1830229082420644003}
+  - component: {fileID: -505503539305005213}
   m_Layer: 0
   m_Name: VRPlayerPrefab
   m_TagString: Untagged
@@ -220,8 +220,8 @@ Transform:
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children:
-  - {fileID: 2213602019732383299}
   - {fileID: 5053258082705429395}
+  - {fileID: 2213602019732383299}
   - {fileID: 7090942089057998725}
   - {fileID: 1939348063}
   m_Father: {fileID: 0}
@@ -396,7 +396,7 @@ MonoBehaviour:
   textHealth: {fileID: 7753278608623811038}
   damageTriggerR: {fileID: 2958628393750022006}
   damageTriggerL: {fileID: 4292952539322599170}
---- !u!114 &1830229082420644003
+--- !u!114 &-505503539305005213
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -413,6 +413,8 @@ MonoBehaviour:
   syncInterval: 0
   serverCameraTransform: {fileID: 0}
   serverPlayerTransform: {fileID: 7090942089057998725}
+  leftHandPosition: {fileID: 2213602019732383299}
+  rightHandPosition: {fileID: 5053258082705429395}
 --- !u!1 &2319475652799005014
 GameObject:
   m_ObjectHideFlags: 0
@@ -733,7 +735,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!224 &1000725475175050203
 RectTransform:
   m_ObjectHideFlags: 0
@@ -922,9 +924,25 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 41987923829919899}
     m_Modifications:
+    - target: {fileID: 2476067645933577263, guid: c37c99100405d47a4834aa05bacd5554, type: 3}
+      propertyPath: m_Enabled
+      value: 0
+      objectReference: {fileID: 0}
     - target: {fileID: 3741874462076707696, guid: c37c99100405d47a4834aa05bacd5554, type: 3}
       propertyPath: m_RootOrder
       value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 3741874462076707696, guid: c37c99100405d47a4834aa05bacd5554, type: 3}
+      propertyPath: m_LocalScale.x
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 3741874462076707696, guid: c37c99100405d47a4834aa05bacd5554, type: 3}
+      propertyPath: m_LocalScale.y
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 3741874462076707696, guid: c37c99100405d47a4834aa05bacd5554, type: 3}
+      propertyPath: m_LocalScale.z
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 3741874462076707696, guid: c37c99100405d47a4834aa05bacd5554, type: 3}
       propertyPath: m_LocalPosition.x
@@ -1016,6 +1034,18 @@ PrefabInstance:
       objectReference: {fileID: 5292069082588018087}
     - target: {fileID: 8129811722673939050, guid: 701438eedae6f428e8f4bebd41d13476, type: 3}
       propertyPath: m_RootOrder
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 8129811722673939050, guid: 701438eedae6f428e8f4bebd41d13476, type: 3}
+      propertyPath: m_LocalScale.x
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 8129811722673939050, guid: 701438eedae6f428e8f4bebd41d13476, type: 3}
+      propertyPath: m_LocalScale.y
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 8129811722673939050, guid: 701438eedae6f428e8f4bebd41d13476, type: 3}
+      propertyPath: m_LocalScale.z
       value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 8129811722673939050, guid: 701438eedae6f428e8f4bebd41d13476, type: 3}
@@ -1113,6 +1143,10 @@ PrefabInstance:
     - target: {fileID: 1286673142524058816, guid: 38ac01a0236e5474ea4d896266de18d2, type: 3}
       propertyPath: m_Name
       value: Model
+      objectReference: {fileID: 0}
+    - target: {fileID: 1286673142524058816, guid: 38ac01a0236e5474ea4d896266de18d2, type: 3}
+      propertyPath: m_IsActive
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 1286673142524058819, guid: 38ac01a0236e5474ea4d896266de18d2, type: 3}
       propertyPath: m_LocalScale.x
