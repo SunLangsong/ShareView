@@ -53,8 +53,8 @@ public class VRPlayerRig : MonoBehaviour
     private void HandleInput()
     {
         // take input from focused window only
-        if (!Application.isFocused)
-            return;
+        //if (!Application.isFocused)
+        //    return;
 
         // input for local player
         if (localVRNetworkPlayerScript && localVRNetworkPlayerScript.isLocalPlayer)

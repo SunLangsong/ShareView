@@ -8,6 +8,7 @@ TagManager:
   - Anchor
   - SubCamera
   - Fpselect
+  - Fpsdisplay
   layers:
   - Default
   - TransparentFX

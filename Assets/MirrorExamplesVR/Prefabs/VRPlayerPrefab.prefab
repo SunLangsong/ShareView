@@ -403,7 +403,7 @@ MonoBehaviour:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1734799815635286640}
-  m_Enabled: 1
+  m_Enabled: 0
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 5f7c98d7be01b8e4da84c7a3149587a8, type: 3}
   m_Name: 
@@ -412,9 +412,9 @@ MonoBehaviour:
   syncMode: 0
   syncInterval: 0
   serverCameraTransform: {fileID: 0}
-  serverPlayerTransform: {fileID: 7090942089057998725}
   leftHandPosition: {fileID: 2213602019732383299}
   rightHandPosition: {fileID: 5053258082705429395}
+  fpsText: {fileID: 0}
 --- !u!1 &2319475652799005014
 GameObject:
   m_ObjectHideFlags: 0

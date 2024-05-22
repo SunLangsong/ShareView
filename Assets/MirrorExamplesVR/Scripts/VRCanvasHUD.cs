@@ -16,6 +16,7 @@ public class VRCanvasHUD : MonoBehaviour
     private TouchScreenKeyboard keyboard;
     private int keyboardStatus = 0;
     public GameObject dropdown;
+    public GameObject mask;
     // UI
     public GameObject PanelStart, PanelStop;
     public Button buttonHost, buttonServer, buttonClient, buttonStop, buttonAuto;
@@ -91,6 +92,10 @@ public class VRCanvasHUD : MonoBehaviour
         NetworkManager.singleton.StartHost();
         networkDiscovery.AdvertiseServer();
 
+        //Active the fps controller 
+        dropdown.SetActive(true);
+        //Active the mask controller 
+        mask.SetActive(true);
     }
 
     public void ButtonServer()
@@ -107,8 +112,7 @@ public class VRCanvasHUD : MonoBehaviour
     {
         SetupInfoText("Starting as client.");
         discoveredServers.Clear();
-        networkDiscovery.StartDiscovery();
-        dropdown.SetActive(true);
+        networkDiscovery.StartDiscovery();       
     }
 
     public void ButtonStop()
