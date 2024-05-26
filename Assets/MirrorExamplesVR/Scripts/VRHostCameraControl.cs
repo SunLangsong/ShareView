@@ -3,6 +3,8 @@ using TMPro;
 using UnityEngine;
 using UnityEngine.InputSystem.XR;
 using UnityEngine.Rendering;
+using System.Collections;
+using System.Collections.Generic;
 using UnityEngine.UI;
 using UnityEngine.UIElements;
 using UnityEngine.XR;
@@ -29,11 +31,17 @@ public class VRHostCameraControl : NetworkBehaviour
     private float nextFrameTime = 0.0f;
     InputDevice leftHandDevice;
     InputDevice rightHandDevice;
+    public Transform Centerposition;
+    //public Quaternion ClientCenterRotation;
     // Send the position and rotation of main camera to all clients from the server 
     [SyncVar]
     private Vector3 syncedPosition;
     [SyncVar]
     private Quaternion syncedRotation;
+    [SyncVar]
+    private Vector3 ServerCenterposition;
+    [SyncVar]
+    private Quaternion ServerCenterRatation;
     // Send the fps message to all clients from the server 
     [SyncVar]
     private float frameRateInterval;
@@ -43,8 +51,8 @@ public class VRHostCameraControl : NetworkBehaviour
     void Start(){
         maincamera = GameObject.FindWithTag("MainCamera");
         subcamera = GameObject.FindWithTag("SubCamera");
-        leftHandDevice = InputDevices.GetDeviceAtXRNode(XRNode.LeftHand);
-        rightHandDevice = InputDevices.GetDeviceAtXRNode(XRNode.RightHand);
+        //leftHandDevice = InputDevices.GetDeviceAtXRNode(XRNode.LeftHand);
+        //rightHandDevice = InputDevices.GetDeviceAtXRNode(XRNode.RightHand);
         dropdownfps = GameObject.FindGameObjectWithTag("Fpselect").GetComponent<TMP_Dropdown>();
         frameRateInterval = 1.0f / 3.0f;
         fpsText = GameObject.FindGameObjectWithTag("Fpsdisplay").GetComponent<TMP_Text>();
@@ -59,6 +67,8 @@ public class VRHostCameraControl : NetworkBehaviour
             // RpcUpdateClientCamera(Camera.main.transform.position, Camera.main.transform.rotation);
             syncedPosition = maincamera.transform.position;
             syncedRotation = maincamera.transform.rotation;
+            ServerCenterposition = Centerposition.position;
+            ServerCenterRatation = Centerposition.rotation;
             // Update the Client fps to all clients from the server 
             dropdownfps.onValueChanged.AddListener(delegate {
                 DropdownValueChanged(dropdownfps);
@@ -87,8 +97,12 @@ public class VRHostCameraControl : NetworkBehaviour
                 maincamera.transform.position = syncedPosition;
                 // maincamera.transform.parent.position = new Vector3(syncedPosition.x, syncedPosition.y-1.3614f, syncedPosition.z);
                 maincamera.transform.rotation = syncedRotation;
-                leftHandPosition.position += syncedPosition;
-                rightHandPosition.position += syncedPosition;
+                Centerposition.position = ServerCenterposition;
+                Centerposition.rotation = ServerCenterRatation;
+                //ClientCenterRotation = ServerCenterRatation;
+                Debug.Log(Centerposition.name);
+                //leftHandPosition.position += syncedPosition;
+                //rightHandPosition.position += syncedPosition;
                 switch(masktype){
                     case 0:
                         panel.GetComponent<Volume>().enabled = false;

@@ -38,7 +38,7 @@ public class VRPlayerRig : MonoBehaviour
     private void FixedUpdate()
     {
         HandleMovement();
-        HandleInput();
+        //HandleInput();
     }
 
     private void HandleMovement()
