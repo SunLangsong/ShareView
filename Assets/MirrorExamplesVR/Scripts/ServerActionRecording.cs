@@ -4,6 +4,7 @@ using UnityEngine;
 using UnityEngine.UI;
 using TMPro;
 using Mirror;
+using Unity.VisualScripting;
 public class ServerActionRecording : NetworkBehaviour
 {
     public GameObject recordButton;
@@ -15,16 +16,22 @@ public class ServerActionRecording : NetworkBehaviour
     private float timer;
     public Transform serverCameraTransform;
     public Transform Centerposition;
+    private List<Vector3> camerapositions;
+    private List<Quaternion> camerarotations;
     [SyncVar]
-    private List<Vector3> camerapositions = new List<Vector3>();
+    private List<Vector3> Syncamerapositions = new List<Vector3>();
     [SyncVar]
-    private List<Quaternion> camerarotations = new List<Quaternion>();
+    private List<Quaternion> Syncamerarotations = new List<Quaternion>();
+    [SyncVar]
+    private bool SynisRecording;
     
 
     void Start()
     {
         recordButton.GetComponent<Button>().onClick.AddListener(ToggleRecording);
         stopButton.GetComponent<Button>().onClick.AddListener(ToggleRecording);
+        camerapositions = new List<Vector3>();
+        camerarotations = new List<Quaternion>();
         timeText.text = "0.0s";
         
     }
@@ -44,28 +51,50 @@ public class ServerActionRecording : NetworkBehaviour
             }
             recordingTime += Time.deltaTime;
             timeText.text = recordingTime.ToString("F1") + "s";
+        }else if(isClient && !isServer){
+
         }
     }
 
     void ToggleRecording()
     {
         isRecording = !isRecording;
+        SynisRecording = isRecording;
         recordingTime = 0;  // Reset the recording time
         if (isRecording)
         {
             // Start to record the action
             recordButton.SetActive(false);
             stopButton.SetActive(true);
-            camerapositions.Clear();
-            camerarotations.Clear();
+            ClearCameraposition();
+            ClearCamerarotation();
         }
         else
         {
             // Stop to record the action
             recordButton.SetActive(true);
             stopButton.SetActive(false);
-            Debug.Log(camerapositions[1]);
+            Syncamerapositions = camerapositions;
+            Syncamerarotations = camerarotations;
+            Debug.Log(camerapositions.Count);
             
         }
+    }
+    public List<Vector3> GetCamerapositions(){
+        return Syncamerapositions;
+    }
+    public List<Quaternion> GetCamerarotations(){
+        return Syncamerarotations;
+    }
+    public void ClearCameraposition(){
+        camerapositions = new List<Vector3>();
+        Syncamerapositions = new List<Vector3>();
+    }
+    public void ClearCamerarotation(){
+        camerarotations = new List<Quaternion>();
+        Syncamerarotations = new List<Quaternion>();
+    }
+    public bool IsRecording(){
+        return SynisRecording;
     }
 }

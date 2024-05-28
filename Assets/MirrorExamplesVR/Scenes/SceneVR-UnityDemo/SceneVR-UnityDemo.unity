@@ -38,7 +38,7 @@ RenderSettings:
   m_ReflectionIntensity: 1
   m_CustomReflection: {fileID: 0}
   m_Sun: {fileID: 1815318736}
-  m_IndirectSpecularColor: {r: 0.3135636, g: 0.5501241, b: 0.8218921, a: 1}
+  m_IndirectSpecularColor: {r: 0.31343237, g: 0.55243826, b: 0.8233737, a: 1}
   m_UseRadianceAmbientProbe: 0
 --- !u!157 &3
 LightmapSettings:
@@ -4341,12 +4341,12 @@ GameObject:
   - component: {fileID: 611524192}
   - component: {fileID: 611524191}
   m_Layer: 5
-  m_Name: Button(Start)
+  m_Name: Recorder(Start)
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!224 &611524190
 RectTransform:
   m_ObjectHideFlags: 0
@@ -4778,37 +4778,6 @@ Transform:
   m_Children: []
   m_Father: {fileID: 1981759014}
   m_LocalEulerAnglesHint: {x: 0, y: -90, z: 0}
---- !u!1 &717136725
-GameObject:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  serializedVersion: 6
-  m_Component:
-  - component: {fileID: 717136726}
-  m_Layer: 0
-  m_Name: macos-record-circle-fill-icon
-  m_TagString: Untagged
-  m_Icon: {fileID: 0}
-  m_NavMeshLayer: 0
-  m_StaticEditorFlags: 0
-  m_IsActive: 0
---- !u!4 &717136726
-Transform:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 717136725}
-  serializedVersion: 2
-  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: 0, z: 0}
-  m_LocalScale: {x: 1, y: 1, z: 1}
-  m_ConstrainProportionsScale: 0
-  m_Children: []
-  m_Father: {fileID: 0}
-  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!4 &735282512 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: 9014170783728641054, guid: 895f6f3c2d334633b5800312285058d2, type: 3}
@@ -6601,6 +6570,14 @@ PrefabInstance:
       value: 
       objectReference: {fileID: 1009613090}
     - target: {fileID: 3859057162576060825, guid: 61758cdcbf2ad49b8babfd87661f704b, type: 3}
+      propertyPath: recordTime
+      value: 
+      objectReference: {fileID: 1386280108}
+    - target: {fileID: 3859057162576060825, guid: 61758cdcbf2ad49b8babfd87661f704b, type: 3}
+      propertyPath: recordStart
+      value: 
+      objectReference: {fileID: 611524189}
+    - target: {fileID: 3859057162576060825, guid: 61758cdcbf2ad49b8babfd87661f704b, type: 3}
       propertyPath: networkDiscovery
       value: 
       objectReference: {fileID: 117952390}
@@ -6910,7 +6887,7 @@ GameObject:
   - component: {fileID: 1009613093}
   - component: {fileID: 1009613091}
   m_Layer: 5
-  m_Name: Dropdown
+  m_Name: MaskSelect
   m_TagString: Fpselect
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -7453,37 +7430,6 @@ BoxCollider:
   serializedVersion: 3
   m_Size: {x: 1.1612295, y: 1.9872521, z: 0.6264862}
   m_Center: {x: 0.58061475, y: 0.99362606, z: 0.3132431}
---- !u!1 &1095748081
-GameObject:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  serializedVersion: 6
-  m_Component:
-  - component: {fileID: 1095748082}
-  m_Layer: 0
-  m_Name: macos-record-circle-fill-icon (1)
-  m_TagString: Untagged
-  m_Icon: {fileID: 0}
-  m_NavMeshLayer: 0
-  m_StaticEditorFlags: 0
-  m_IsActive: 0
---- !u!4 &1095748082
-Transform:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1095748081}
-  serializedVersion: 2
-  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: 0, z: 0}
-  m_LocalScale: {x: 1, y: 1, z: 1}
-  m_ConstrainProportionsScale: 0
-  m_Children: []
-  m_Father: {fileID: 0}
-  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &1119760543
 GameObject:
   m_ObjectHideFlags: 0
@@ -9628,7 +9574,7 @@ GameObject:
   - component: {fileID: 1343900048}
   - component: {fileID: 1343900047}
   m_Layer: 5
-  m_Name: Button(Stop)
+  m_Name: Recorder(Stop)
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -9889,12 +9835,12 @@ GameObject:
   - component: {fileID: 1386280111}
   - component: {fileID: 1386280110}
   m_Layer: 5
-  m_Name: Text (TMP)
+  m_Name: RecordTime (TMP)
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!224 &1386280109
 RectTransform:
   m_ObjectHideFlags: 0
@@ -17181,7 +17127,7 @@ RectTransform:
   m_AnchorMin: {x: 0, y: 0}
   m_AnchorMax: {x: 1, y: 0}
   m_AnchoredPosition: {x: 0, y: 2}
-  m_SizeDelta: {x: 0, y: 150}
+  m_SizeDelta: {x: 0, y: 210}
   m_Pivot: {x: 0.5, y: 1}
 --- !u!114 &1838160917
 MonoBehaviour:
@@ -21956,9 +21902,6 @@ MonoBehaviour:
   syncDirection: 0
   syncMode: 0
   syncInterval: 0
-  serverCameraTransform: {fileID: 1731298972}
-  leftHandPosition: {fileID: 1731298975}
-  rightHandPosition: {fileID: 1731298974}
   fpsText: {fileID: 217963130}
   mask: {fileID: 1840687902}
   panel: {fileID: 1944698030}
@@ -23031,5 +22974,3 @@ SceneRoots:
   - {fileID: 391281303}
   - {fileID: 145798476}
   - {fileID: 1997082585}
-  - {fileID: 717136726}
-  - {fileID: 1095748082}

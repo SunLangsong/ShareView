@@ -3,82 +3,80 @@ using TMPro;
 using UnityEngine;
 using UnityEngine.InputSystem.XR;
 using UnityEngine.Rendering;
-using System.Collections;
-using System.Collections.Generic;
-using UnityEngine.UI;
-using UnityEngine.UIElements;
-using UnityEngine.XR;
+using Unity.VisualScripting;
 public class VRHostCameraControl : NetworkBehaviour
 {
-    // 在Inspector中指定服务器的摄像机对象
-    public Transform serverCameraTransform;
-    //public Transform serverPlayerTransform;
-
-    public Transform leftHandPosition;
-    public Transform rightHandPosition;
+    // public Transform serverCameraTransform;
     private TMP_Dropdown dropdownfps;
     public TMP_Text fpsText;
     public TMP_Dropdown mask;
     public GameObject panel;
-    // 用于存储接收到的数据，可能还需要进一步处理
-    private Vector3 receivedPosition;
-    private Quaternion receivedRotation;
-
     private GameObject maincamera;
-    private GameObject subcamera;
+    // private GameObject subcamera;
     double startTime;
     int count;
     private float nextFrameTime = 0.0f;
-    InputDevice leftHandDevice;
-    InputDevice rightHandDevice;
+    // InputDevice leftHandDevice;
+    // InputDevice rightHandDevice;
     public Transform Centerposition;
-    //public Quaternion ClientCenterRotation;
-    // Send the position and rotation of main camera to all clients from the server 
+    private ServerActionRecording actionrecord;
+    private int index = 0;
+    // Send the action of main camera to all clients
     [SyncVar]
     private Vector3 syncedPosition;
     [SyncVar]
     private Quaternion syncedRotation;
+    // Send the action of VR origin to all clients
     [SyncVar]
     private Vector3 ServerCenterposition;
     [SyncVar]
     private Quaternion ServerCenterRatation;
-    // Send the fps message to all clients from the server 
+    // Send the fps message to all clients
     [SyncVar]
     private float frameRateInterval;
+    // Send the masktype to all clients
     [SyncVar]
     private int masktype;
     
     void Start(){
         maincamera = GameObject.FindWithTag("MainCamera");
-        subcamera = GameObject.FindWithTag("SubCamera");
-        //leftHandDevice = InputDevices.GetDeviceAtXRNode(XRNode.LeftHand);
-        //rightHandDevice = InputDevices.GetDeviceAtXRNode(XRNode.RightHand);
+
+        actionrecord = GameObject.FindObjectOfType<ServerActionRecording>().GetComponent<ServerActionRecording>();
+
         dropdownfps = GameObject.FindGameObjectWithTag("Fpselect").GetComponent<TMP_Dropdown>();
+
         frameRateInterval = 1.0f / 3.0f;
+
         fpsText = GameObject.FindGameObjectWithTag("Fpsdisplay").GetComponent<TMP_Text>();
+
         masktype = mask.value;
     }
     void Update()
     {
         if (isServer)
         {
-            // Update the position and rotation of main camera to all clients from the server 
-            // RpcUpdateClientCamera(serverCameraTransform.position, serverCameraTransform.rotation);
-            // RpcUpdateClientCamera(Camera.main.transform.position, Camera.main.transform.rotation);
+            // Get the action of main camera from the Server
             syncedPosition = maincamera.transform.position;
             syncedRotation = maincamera.transform.rotation;
+
+            // Get the action of VR origin from the Server
             ServerCenterposition = Centerposition.position;
             ServerCenterRatation = Centerposition.rotation;
-            // Update the Client fps to all clients from the server 
+            
+            // Update the Client fps for all clients by the choice of the server 
             dropdownfps.onValueChanged.AddListener(delegate {
                 DropdownValueChanged(dropdownfps);
             });
+
+            // Update the Client mask for all clients by the choice of the server 
             mask.onValueChanged.AddListener(delegate {
                 masktype = mask.value;
+                // UpdateClientMask(mask.value);
             });
         }
         if (isClient && !isServer) // Make sure the change is on clients
         {
+            // int index = 0;
             if (Time.time < nextFrameTime)
             {
                 return;
@@ -86,41 +84,38 @@ public class VRHostCameraControl : NetworkBehaviour
             }else{
                 // Change the view data of all clients
 
-                // Camera.main.transform.parent.position = receivedPosition;
-                // Camera.main.transform.parent.rotation = receivedRotation;
+                // Close the action control of the Client HMD
                 // maincamera.GetComponent<TrackedPoseDriver>().trackingType = TrackedPoseDriver.TrackingType.PositionOnly;
                 maincamera.GetComponent<TrackedPoseDriver>().enabled = false;
-                // Camera.main.transform.parent.position = new Vector3(syncedPosition.x, 0, syncedPosition.z);
-            
-                // Camera.main.transform.parent.rotation = syncedRotation;
-                // maincamera.transform.position = new Vector3(syncedPosition.x, syncedPosition.y, syncedPosition.z);
-                maincamera.transform.position = syncedPosition;
-                // maincamera.transform.parent.position = new Vector3(syncedPosition.x, syncedPosition.y-1.3614f, syncedPosition.z);
-                maincamera.transform.rotation = syncedRotation;
-                Centerposition.position = ServerCenterposition;
-                Centerposition.rotation = ServerCenterRatation;
-                //ClientCenterRotation = ServerCenterRatation;
-                Debug.Log(Centerposition.name);
-                //leftHandPosition.position += syncedPosition;
-                //rightHandPosition.position += syncedPosition;
-                switch(masktype){
-                    case 0:
-                        panel.GetComponent<Volume>().enabled = false;
-                        panel.GetComponent<UnityEngine.UI.Image>().enabled = false;
-                        break;
-                    case 1:
-                        panel.GetComponent<Volume>().enabled = true;
-                        panel.GetComponent<UnityEngine.UI.Image>().enabled = false;
-                        break;
-                    case 2:
-                        panel.GetComponent<Volume>().enabled = false;
-                        panel.GetComponent<UnityEngine.UI.Image>().enabled = true;
-                        break;
-                    default:
-                        break;
+                if(actionrecord.GetCamerapositions().Count > 0){
+                    // Control the action of the Clients' main camera by the data from the Server
+                    maincamera.transform.position = actionrecord.GetCamerapositions()[index];
+                    Debug.Log(index);
+                    maincamera.transform.rotation = actionrecord.GetCamerarotations()[index];
+                    
+                    // Control the action of the Clients' VR origin by the data from the Server
+                    // Centerposition.position = ServerCenterposition;
+                    // Centerposition.rotation = ServerCenterRatation;
+                    index += (60 * frameRateInterval).ConvertTo<int>(); 
+                    Debug.Log(actionrecord.GetCamerapositions().Count);
+                    if(index >= actionrecord.GetCamerapositions().Count){
+                        actionrecord.ClearCameraposition();
+                        actionrecord.ClearCamerarotation();
+                        index = 0;
+                    }
+                }else{
+                    // Control the action of the Clients' VR origin by the data from the Server
+                    Centerposition.position = ServerCenterposition;
+                    Centerposition.rotation = ServerCenterRatation;
+
+                    // Control the action of the Clients' main camera by the data from the Server
+                    maincamera.transform.position = syncedPosition;
+                    maincamera.transform.rotation = syncedRotation;
+                    Debug.Log(actionrecord.GetCamerapositions().Count);
                 }
-                // serverPlayerTransform.position = receivedPosition;
-                // serverPlayerTransform.rotation = receivedRotation;
+
+                UpdateClientMask(masktype);
+                
             }
             nextFrameTime = Time.time + frameRateInterval;   
         }
@@ -129,7 +124,6 @@ public class VRHostCameraControl : NetworkBehaviour
     void DropdownValueChanged(TMP_Dropdown change)
     {
         // Change the interval between two frames
-        // frameRateInterval = 1.0f / ((change.value + 1) * 5);
         switch(change.value){
             case 0:
                 frameRateInterval = 1.0f / 3.0f;
@@ -158,12 +152,26 @@ public class VRHostCameraControl : NetworkBehaviour
             fpsText.text = $"{fps:0.} fps";
         }
     }
-    [ClientRpc]
-    void RpcUpdateClientCamera(Vector3 position, Quaternion rotation)
+    //[ClientRpc]
+    void UpdateClientMask(int type)
     {
-        // Receive the position and rotation for all clients from Server 
-        //receivedPosition = position;
-        //receivedRotation = rotation;
+        // Change the Mask of the Clients by the Choice Selected by the Server 
+        switch(type){
+            case 0:
+                panel.GetComponent<Volume>().enabled = false;
+                panel.GetComponent<UnityEngine.UI.Image>().enabled = false;
+                break;
+        case 1:
+                panel.GetComponent<Volume>().enabled = true;
+                panel.GetComponent<UnityEngine.UI.Image>().enabled = false;
+                break;
+        case 2:
+                panel.GetComponent<Volume>().enabled = false;
+                panel.GetComponent<UnityEngine.UI.Image>().enabled = true;
+                break;
+        default:
+                break;
+        }
     }
     
 }

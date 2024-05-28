@@ -17,6 +17,8 @@ public class VRCanvasHUD : MonoBehaviour
     private int keyboardStatus = 0;
     public GameObject dropdown;
     public GameObject mask;
+    public GameObject recordStart;
+    public GameObject recordTime;
     // UI
     public GameObject PanelStart, PanelStop;
     public Button buttonHost, buttonServer, buttonClient, buttonStop, buttonAuto;
@@ -92,10 +94,14 @@ public class VRCanvasHUD : MonoBehaviour
         NetworkManager.singleton.StartHost();
         networkDiscovery.AdvertiseServer();
 
-        //Active the fps controller 
+        // Active the fps controller 
         dropdown.SetActive(true);
-        //Active the mask controller 
+        // Active the mask controller 
         mask.SetActive(true);
+        // Active the RecordButton
+        recordStart.SetActive(true);
+        // Active the RecordText
+        recordTime.SetActive(true);
     }
 
     public void ButtonServer()
