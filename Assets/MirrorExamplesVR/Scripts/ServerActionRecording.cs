@@ -5,11 +5,14 @@ using UnityEngine.UI;
 using TMPro;
 using Mirror;
 using Unity.VisualScripting;
+using Assets.OVR.Scripts;
 public class ServerActionRecording : NetworkBehaviour
 {
     public GameObject recordButton;
     public GameObject stopButton;
+    public GameObject recordSelect;
     public TMP_Text timeText;
+    private TMP_Dropdown record;
     private bool isRecording = false;
     private float recordingTime = 0.0f;
     private float recordInterval = 1.0f / 60.0f;
@@ -18,22 +21,28 @@ public class ServerActionRecording : NetworkBehaviour
     public Transform Centerposition;
     private List<Vector3> camerapositions;
     private List<Quaternion> camerarotations;
+    private List<List<Vector3>> positionrecords;
+    private List<List<Quaternion>> rotationrecords;
     [SyncVar]
-    private List<Vector3> Syncamerapositions = new List<Vector3>();
+    private List<List<Vector3>> Synpositionrecords;
     [SyncVar]
-    private List<Quaternion> Syncamerarotations = new List<Quaternion>();
-    [SyncVar]
-    private bool SynisRecording;
+    private List<List<Quaternion>> Synrotationrecords;
+    //[SyncVar]
+    //private bool SynisRecording;
     
 
     void Start()
     {
-        recordButton.GetComponent<Button>().onClick.AddListener(ToggleRecording);
-        stopButton.GetComponent<Button>().onClick.AddListener(ToggleRecording);
-        camerapositions = new List<Vector3>();
-        camerarotations = new List<Quaternion>();
-        timeText.text = "0.0s";
-        
+        if(isServer){
+            recordButton.GetComponent<Button>().onClick.AddListener(ToggleRecording);
+            stopButton.GetComponent<Button>().onClick.AddListener(ToggleRecording);
+            record = recordSelect.GetComponent<TMP_Dropdown>();
+            camerapositions = new List<Vector3>();
+            camerarotations = new List<Quaternion>();
+            positionrecords = new List<List<Vector3>>();
+            rotationrecords = new List<List<Quaternion>>();
+            timeText.text = "0.0s";
+        }
     }
 
     void Update()
@@ -59,7 +68,7 @@ public class ServerActionRecording : NetworkBehaviour
     void ToggleRecording()
     {
         isRecording = !isRecording;
-        SynisRecording = isRecording;
+        // SynisRecording = isRecording;
         recordingTime = 0;  // Reset the recording time
         if (isRecording)
         {
@@ -74,27 +83,48 @@ public class ServerActionRecording : NetworkBehaviour
             // Stop to record the action
             recordButton.SetActive(true);
             stopButton.SetActive(false);
-            Syncamerapositions = camerapositions;
-            Syncamerarotations = camerarotations;
-            Debug.Log(camerapositions.Count);
-            
+            recordSelect.SetActive(true);
+            positionrecords.Add(camerapositions);
+            rotationrecords.Add(camerarotations);
+
+            // Syn the record data to all clients
+            SynrecordData(positionrecords, rotationrecords);
+
+            // Add the option to recordSelect dropdown
+            record.options.Add(new TMP_Dropdown.OptionData("Record " + NumOfSevRecords().ToString()));
+
         }
     }
-    public List<Vector3> GetCamerapositions(){
-        return Syncamerapositions;
+    private int NumOfSevRecords(){
+        return positionrecords.Count;
     }
-    public List<Quaternion> GetCamerarotations(){
-        return Syncamerarotations;
+    public int NumOfRecords(){
+        return Synpositionrecords.Count;
+    }
+    public int Numofactions(int index){
+        return Synpositionrecords[index].Count;
+    }
+    public Vector3 GetCamerapositions(int id, int index){
+        if (id < NumOfRecords() && index < Numofactions(id)){
+            return Synpositionrecords[id][index];
+        }
+        return new Vector3(0, 0, 0);
+    }
+    public Quaternion GetCamerarotations(int id, int index){
+        if (id < NumOfRecords() && index < Numofactions(id)){
+            return Synrotationrecords[id][index];
+        }
+        return new Quaternion(0, 0, 0, 0);
     }
     public void ClearCameraposition(){
         camerapositions = new List<Vector3>();
-        Syncamerapositions = new List<Vector3>();
     }
     public void ClearCamerarotation(){
         camerarotations = new List<Quaternion>();
-        Syncamerarotations = new List<Quaternion>();
     }
-    public bool IsRecording(){
-        return SynisRecording;
+    [ClientRpc]
+    private void SynrecordData(List<List<Vector3>> posi, List<List<Quaternion>> rota){
+        Synpositionrecords = posi;
+        Synrotationrecords = rota;
     }
 }
