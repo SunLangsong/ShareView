@@ -5,16 +5,21 @@ using UnityEngine.InputSystem.XR;
 using UnityEngine.Rendering;
 using Unity.VisualScripting;
 using UnityEngine.UI;
+using UnityEngine.XR.Interaction.Toolkit.Samples.StarterAssets;
 public class VRHostCameraControl : NetworkBehaviour
 {
     
     public GameObject panel;
     private GameObject maincamera;
+    public GameObject subcamera;
+    public GameObject Image_Mask;
     public GameObject fpsSelect;
     public GameObject maskSelect;
     public GameObject recordStart;
     public GameObject recordTime;
     public GameObject recordSelect;
+    public GameObject LeftHand;
+    public GameObject RightHand;
     private TMP_Dropdown dropdownfps;
     public TMP_Text fpsText;
     private TMP_Dropdown mask;
@@ -87,7 +92,13 @@ public class VRHostCameraControl : NetworkBehaviour
             // Update the Client mask for all clients by the choice of the server 
             mask.onValueChanged.AddListener(delegate {
                 masktype = mask.value;
+                UpdateClientMask(mask.value);
             });
+        }
+        if (isClient && !isServer) {
+            // Close the action control of the Client HMD
+            // maincamera.GetComponent<TrackedPoseDriver>().trackingType = TrackedPoseDriver.TrackingType.PositionOnly;
+            maincamera.GetComponent<TrackedPoseDriver>().enabled = false;
         }
     }
     void Update()
@@ -113,13 +124,16 @@ public class VRHostCameraControl : NetworkBehaviour
             }else{
                 // Change the view data of all clients
 
-                // Close the action control of the Client HMD
-                // maincamera.GetComponent<TrackedPoseDriver>().trackingType = TrackedPoseDriver.TrackingType.PositionOnly;
-                maincamera.GetComponent<TrackedPoseDriver>().enabled = false;
                 if(play == true && actionrecord.NumOfRecords() > 0){
                     // Control the action of the Clients' main camera by the data from the Server
-                    maincamera.transform.position = actionrecord.GetCamerapositions(recordtype, index);
-                    maincamera.transform.rotation = actionrecord.GetCamerarotations(recordtype, index);
+                    if(masktype == 3){
+                        subcamera.transform.position = actionrecord.GetCamerapositions(recordtype, index);
+                        subcamera.transform.rotation = actionrecord.GetCamerarotations(recordtype, index);
+                    }else{
+                        maincamera.transform.position = actionrecord.GetCamerapositions(recordtype, index);
+                        maincamera.transform.rotation = actionrecord.GetCamerarotations(recordtype, index);
+                    }
+                        
                     
                     // Control the action of the Clients' VR origin by the data from the Server
                     // Centerposition.position = ServerCenterposition;
@@ -136,15 +150,21 @@ public class VRHostCameraControl : NetworkBehaviour
 
                 }else{
                     // Control the action of the Clients' VR origin by the data from the Server
-                    Centerposition.position = ServerCenterposition;
-                    Centerposition.rotation = ServerCenterRatation;
+                    // Centerposition.position = ServerCenterposition;
+                    // Centerposition.rotation = ServerCenterRatation;
 
                     // Control the action of the Clients' main camera by the data from the Server
-                    maincamera.transform.position = syncedPosition;
-                    maincamera.transform.rotation = syncedRotation;
+                    if(masktype == 3){
+                        subcamera.transform.position = syncedPosition;
+                        subcamera.transform.rotation = syncedRotation;
+                        maincamera.transform.position = syncedPosition;
+                    }else{
+                        maincamera.transform.position = syncedPosition;
+                        maincamera.transform.rotation = syncedRotation;
+                    }
                 }
 
-                UpdateClientMask(masktype);
+                //UpdateClientMask(masktype);
                 
             }
             nextFrameTime = Time.time + frameRateInterval;   
@@ -187,26 +207,45 @@ public class VRHostCameraControl : NetworkBehaviour
     
         Rectherecordtype(record.value, true, 0);
     }
+    [ClientRpc]
     void UpdateClientMask(int type)
     {
-        // Change the Mask of the Clients by the Choice Selected by the Server 
-        switch(type){
-            case 0:
-                panel.GetComponent<Volume>().enabled = false;
-                panel.GetComponent<UnityEngine.UI.Image>().enabled = false;
-                break;
-        case 1:
-                panel.GetComponent<Volume>().enabled = true;
-                panel.GetComponent<UnityEngine.UI.Image>().enabled = false;
-                break;
-        case 2:
-                panel.GetComponent<Volume>().enabled = false;
-                panel.GetComponent<UnityEngine.UI.Image>().enabled = true;
-                break;
-        default:
-                break;
+        if (isClient && !isServer){
+            // Change the Mask of the Clients by the Choice Selected by the Server 
+            switch(type){
+                case 0:
+                    panel.GetComponent<Volume>().enabled = false;
+                    panel.GetComponent<UnityEngine.UI.Image>().enabled = false;
+                    SetCameraToLimitFov(false);
+                    break;
+                case 1:
+                    SetCameraToLimitFov(false);
+                    panel.GetComponent<UnityEngine.UI.Image>().enabled = false;
+                    panel.GetComponent<Volume>().enabled = true;              
+                    break;
+                case 2:
+                    panel.GetComponent<Volume>().enabled = false;
+                    SetCameraToLimitFov(false);
+                    panel.GetComponent<UnityEngine.UI.Image>().enabled = true;
+                    break;
+                case 3:
+                    panel.GetComponent<Volume>().enabled = false;
+                    panel.GetComponent<UnityEngine.UI.Image>().enabled = false;
+                    SetCameraToLimitFov(true);
+                    break;
+            default:
+                    break;
+            }
         }
         
+    }
+    void SetCameraToLimitFov(bool flag){
+        subcamera.SetActive(flag);
+        Image_Mask.SetActive(flag);
+        maincamera.GetComponent<TrackedPoseDriver>().enabled = flag;
+        maincamera.GetComponent<TrackedPoseDriver>().trackingType = TrackedPoseDriver.TrackingType.RotationOnly;
+        LeftHand.GetComponent<ActionBasedControllerManager>().enabled = !flag;
+        RightHand.GetComponent<ActionBasedControllerManager>().enabled = !flag;        
     }
     // Initiate the record to play
     [ClientRpc]
