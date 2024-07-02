@@ -12,7 +12,9 @@ public class VRHostCameraControl : NetworkBehaviour
     public GameObject panel;
     private GameObject maincamera;
     public GameObject subcamera;
+    public GameObject fovcamera;
     public GameObject Image_Mask;
+    public GameObject Image_Mask1;
     public GameObject fpsSelect;
     public GameObject maskSelect;
     public GameObject recordStart;
@@ -157,7 +159,12 @@ public class VRHostCameraControl : NetworkBehaviour
                     if(masktype == 3){
                         subcamera.transform.position = syncedPosition;
                         subcamera.transform.rotation = syncedRotation;
+                        maincamera.transform.position = syncedPosition; 
+                        //maincamera.transform.rotation = syncedRotation;
+                    }else if(masktype == 5){
                         maincamera.transform.position = syncedPosition;
+                        maincamera.transform.rotation = syncedRotation;
+                        subcamera.transform.position = syncedPosition;
                     }else{
                         maincamera.transform.position = syncedPosition;
                         maincamera.transform.rotation = syncedRotation;
@@ -217,21 +224,43 @@ public class VRHostCameraControl : NetworkBehaviour
                     panel.GetComponent<Volume>().enabled = false;
                     panel.GetComponent<UnityEngine.UI.Image>().enabled = false;
                     SetCameraToLimitFov(false);
+                    SetCameraToLimitFov1(false);
+                    SetCameraToLimitFov2(false);
                     break;
                 case 1:
                     SetCameraToLimitFov(false);
+                    SetCameraToLimitFov1(false);
                     panel.GetComponent<UnityEngine.UI.Image>().enabled = false;
+                    SetCameraToLimitFov2(false);
                     panel.GetComponent<Volume>().enabled = true;              
                     break;
                 case 2:
                     panel.GetComponent<Volume>().enabled = false;
                     SetCameraToLimitFov(false);
+                    SetCameraToLimitFov1(false);
+                    SetCameraToLimitFov2(false);
                     panel.GetComponent<UnityEngine.UI.Image>().enabled = true;
                     break;
                 case 3:
                     panel.GetComponent<Volume>().enabled = false;
                     panel.GetComponent<UnityEngine.UI.Image>().enabled = false;
+                    SetCameraToLimitFov1(false);
+                    SetCameraToLimitFov2(false);
                     SetCameraToLimitFov(true);
+                    break;
+                case 4:
+                    panel.GetComponent<Volume>().enabled = false;
+                    panel.GetComponent<UnityEngine.UI.Image>().enabled = false;
+                    SetCameraToLimitFov(false);
+                    SetCameraToLimitFov2(false);
+                    SetCameraToLimitFov1(true);
+                    break;
+                case 5:
+                    panel.GetComponent<Volume>().enabled = false;
+                    panel.GetComponent<UnityEngine.UI.Image>().enabled = false;
+                    SetCameraToLimitFov(false);
+                    SetCameraToLimitFov1(false);
+                    SetCameraToLimitFov2(true);
                     break;
             default:
                     break;
@@ -244,6 +273,34 @@ public class VRHostCameraControl : NetworkBehaviour
         Image_Mask.SetActive(flag);
         maincamera.GetComponent<TrackedPoseDriver>().enabled = flag;
         maincamera.GetComponent<TrackedPoseDriver>().trackingType = TrackedPoseDriver.TrackingType.RotationOnly;
+        LeftHand.GetComponent<ActionBasedControllerManager>().enabled = !flag;
+        RightHand.GetComponent<ActionBasedControllerManager>().enabled = !flag;        
+    }
+    void SetCameraToLimitFov1(bool flag){
+        fovcamera.SetActive(flag);
+        if(flag){
+            maincamera.GetComponent<Camera>().rect = new Rect(0.2f, 0.2f, 0.6f, 0.6f);
+            maincamera.GetComponent<Camera>().fieldOfView = 38.3f;
+        }else{
+            maincamera.GetComponent<Camera>().rect = new Rect(0.0f, 0.0f, 1.0f, 1.0f);
+            maincamera.GetComponent<Camera>().fieldOfView = 60f;
+        }
+        
+    }
+    void SetCameraToLimitFov2(bool flag){
+        Image_Mask1.SetActive(flag);
+        if(flag){
+            subcamera.SetActive(flag);
+            subcamera.GetComponent<TrackedPoseDriver>().enabled = flag;
+            subcamera.GetComponent<TrackedPoseDriver>().trackingType = TrackedPoseDriver.TrackingType.RotationOnly;
+            subcamera.GetComponent<Camera>().fieldOfView = 89.7f;
+        }else{
+            subcamera.GetComponent<TrackedPoseDriver>().enabled = flag;
+            subcamera.GetComponent<Camera>().fieldOfView = 80f;
+            subcamera.SetActive(flag);
+            //subcamera.GetComponent<TrackedPoseDriver>().trackingType = TrackedPoseDriver.TrackingType.RotationAndPosition;
+        }
+        
         LeftHand.GetComponent<ActionBasedControllerManager>().enabled = !flag;
         RightHand.GetComponent<ActionBasedControllerManager>().enabled = !flag;        
     }
