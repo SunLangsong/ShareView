@@ -42,9 +42,9 @@ public class VRHostCameraControl : NetworkBehaviour
     // Check the condition of the record selected
     private bool play = false;
     // Send the action of main camera to all clients
-    [SyncVar]
+    //[SyncVar]
     private Vector3 syncedPosition;
-    [SyncVar]
+    //[SyncVar]
     private Quaternion syncedRotation;
     // Send the action of VR origin to all clients
     [SyncVar]
@@ -107,76 +107,76 @@ public class VRHostCameraControl : NetworkBehaviour
     {
         if (isServer)
         {
-            // Get the action of main camera from the Server
-            syncedPosition = maincamera.transform.position;
-            syncedRotation = maincamera.transform.rotation;
+            Countfps();
+            if (Time.time < nextFrameTime)
+            {
+                return;
+                
+            }else{
+                // Get the action of main camera from the Server
+                SyncTransform(maincamera.transform.position, maincamera.transform.rotation);
+                //syncedPosition = maincamera.transform.position;
+                //syncedRotation = maincamera.transform.rotation;
 
-            // Get the action of VR origin from the Server
-            ServerCenterposition = Centerposition.position;
-            ServerCenterRatation = Centerposition.rotation;
-            
+                // Get the action of VR origin from the Server
+                ServerCenterposition = Centerposition.position;
+                ServerCenterRatation = Centerposition.rotation;
+            }    
+            nextFrameTime = Time.time + frameRateInterval;  
         }
         if (isClient && !isServer) // Make sure the change is on clients
         {
+            if(play == true && actionrecord.NumOfRecords() > 0){
+                // Control the action of the Clients' main camera by the data from the Server
+                if(masktype == 3){
+                    subcamera.transform.position = actionrecord.GetCamerapositions(recordtype, index);
+                    subcamera.transform.rotation = actionrecord.GetCamerarotations(recordtype, index);
+                }else{
+                    maincamera.transform.position = actionrecord.GetCamerapositions(recordtype, index);
+                    maincamera.transform.rotation = actionrecord.GetCamerarotations(recordtype, index);
+                }       
+                // Control the action of the Clients' VR origin by the data from the Server
+                // Centerposition.position = ServerCenterposition;
+                // Centerposition.rotation = ServerCenterRatation;
+
+                // Read the record action data with the interval of fps
+                index += (60 * frameRateInterval).ConvertTo<int>(); 
+
+                // If read all the action of one record, stop reading the record
+                if(index >= actionrecord.Numofactions(recordtype)){
+                    index = 0;
+                    play = false;
+                }
+            }else{
+                // Control the action of the Clients' VR origin by the data from the Server
+                // Centerposition.position = ServerCenterposition;
+                // Centerposition.rotation = ServerCenterRatation;
+
+                // Control the action of the Clients' main camera by the data from the Server
+                if(masktype == 3){
+                    subcamera.transform.position = syncedPosition;
+                    subcamera.transform.rotation = syncedRotation;
+                    maincamera.transform.position = syncedPosition; 
+                    //maincamera.transform.rotation = syncedRotation;
+                }else if(masktype == 5){
+                    maincamera.transform.position = syncedPosition;
+                    maincamera.transform.rotation = syncedRotation;
+                    subcamera.transform.position = new Vector3(syncedPosition.x + 6.5f, syncedPosition.y + 2.0f, syncedPosition.z + 40f);
+                }else{
+                    maincamera.transform.position = syncedPosition;
+                    maincamera.transform.rotation = syncedRotation;
+                }
+            }
             // int index = 0;
             if (Time.time < nextFrameTime)
             {
                 return;
                 
             }else{
-                // Change the view data of all clients
-
-                if(play == true && actionrecord.NumOfRecords() > 0){
-                    // Control the action of the Clients' main camera by the data from the Server
-                    if(masktype == 3){
-                        subcamera.transform.position = actionrecord.GetCamerapositions(recordtype, index);
-                        subcamera.transform.rotation = actionrecord.GetCamerarotations(recordtype, index);
-                    }else{
-                        maincamera.transform.position = actionrecord.GetCamerapositions(recordtype, index);
-                        maincamera.transform.rotation = actionrecord.GetCamerarotations(recordtype, index);
-                    }
-                        
-                    
-                    // Control the action of the Clients' VR origin by the data from the Server
-                    // Centerposition.position = ServerCenterposition;
-                    // Centerposition.rotation = ServerCenterRatation;
-
-                    // Read the record action data with the interval of fps
-                    index += (60 * frameRateInterval).ConvertTo<int>(); 
-
-                    // If read all the action of one record, stop reading the record
-                    if(index >= actionrecord.Numofactions(recordtype)){
-                        index = 0;
-                        play = false;
-                    }
-
-                }else{
-                    // Control the action of the Clients' VR origin by the data from the Server
-                    // Centerposition.position = ServerCenterposition;
-                    // Centerposition.rotation = ServerCenterRatation;
-
-                    // Control the action of the Clients' main camera by the data from the Server
-                    if(masktype == 3){
-                        subcamera.transform.position = syncedPosition;
-                        subcamera.transform.rotation = syncedRotation;
-                        maincamera.transform.position = syncedPosition; 
-                        //maincamera.transform.rotation = syncedRotation;
-                    }else if(masktype == 5){
-                        maincamera.transform.position = syncedPosition;
-                        maincamera.transform.rotation = syncedRotation;
-                        subcamera.transform.position = syncedPosition;
-                    }else{
-                        maincamera.transform.position = syncedPosition;
-                        maincamera.transform.rotation = syncedRotation;
-                    }
-                }
-
-                //UpdateClientMask(masktype);
-                
-            }
-            nextFrameTime = Time.time + frameRateInterval;   
+                nextFrameTime = Time.time + frameRateInterval;
+                Countfps();       
+            }    
         }
-        Countfps(); 
     }
     void DropdownValueChanged(TMP_Dropdown change)
     {
@@ -293,16 +293,23 @@ public class VRHostCameraControl : NetworkBehaviour
             subcamera.SetActive(flag);
             subcamera.GetComponent<TrackedPoseDriver>().enabled = flag;
             subcamera.GetComponent<TrackedPoseDriver>().trackingType = TrackedPoseDriver.TrackingType.RotationOnly;
-            subcamera.GetComponent<Camera>().fieldOfView = 89.7f;
+            maincamera.GetComponent<Camera>().fieldOfView = 50f;
+            subcamera.GetComponent<Camera>().fieldOfView = 85f;
         }else{
             subcamera.GetComponent<TrackedPoseDriver>().enabled = flag;
             subcamera.GetComponent<Camera>().fieldOfView = 80f;
+            maincamera.GetComponent<Camera>().fieldOfView = 60f;
             subcamera.SetActive(flag);
             //subcamera.GetComponent<TrackedPoseDriver>().trackingType = TrackedPoseDriver.TrackingType.RotationAndPosition;
         }
         
         LeftHand.GetComponent<ActionBasedControllerManager>().enabled = !flag;
         RightHand.GetComponent<ActionBasedControllerManager>().enabled = !flag;        
+    }
+    [ClientRpc]
+    private void SyncTransform(Vector3 pos, Quaternion rot){
+        syncedPosition = pos;
+        syncedRotation = rot;
     }
     // Initiate the record to play
     [ClientRpc]

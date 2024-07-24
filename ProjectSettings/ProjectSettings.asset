@@ -13,7 +13,7 @@ PlayerSettings:
   useOnDemandResources: 0
   accelerometerFrequency: 60
   companyName: Mirror
-  productName: Test15
+  productName: Test16
   defaultCursor: {fileID: 0}
   cursorHotspot: {x: 0, y: 0}
   m_SplashScreenBackgroundColor: {r: 0.13725491, g: 0.12156863, b: 0.1254902, a: 1}
@@ -136,7 +136,7 @@ PlayerSettings:
   vulkanEnableLateAcquireNextImage: 0
   vulkanEnableCommandBufferRecycling: 1
   loadStoreDebugModeEnabled: 0
-  bundleVersion: 0.16
+  bundleVersion: 0.17
   preloadedAssets:
   - {fileID: 0}
   - {fileID: 11400000, guid: 2815a9a3007421942a481026132ad519, type: 2}
@@ -163,7 +163,7 @@ PlayerSettings:
   androidSupportedAspectRatio: 1
   androidMaxAspectRatio: 2.1
   applicationIdentifier:
-    Android: Mirror.ShareView.Dev15
+    Android: Mirror.ShareView.Dev16
     Standalone: Mirror.ExamplesVR
     iPhone: Mirror.ExamplesVR
   buildNumber:
@@ -949,11 +949,11 @@ PlayerSettings:
   apiCompatibilityLevel: 6
   activeInputHandler: 2
   windowsGamepadBackendHint: 0
-  cloudProjectId: 
+  cloudProjectId: d48f5fe4-166c-484e-a94a-1804af6a5e4a
   framebufferDepthMemorylessMode: 0
   qualitySettingsNames: []
-  projectName: 
-  organizationId: 
+  projectName: ShareView
+  organizationId: wechat_os_qy03kzcg9cyrwiv9ndwnzhyw8
   cloudEnabled: 0
   legacyClampBlendShapeWeights: 0
   hmiLoadingImage: {fileID: 0}
