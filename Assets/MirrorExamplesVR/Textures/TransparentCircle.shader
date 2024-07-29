@@ -4,7 +4,8 @@ Shader "Custom/TransparentCircle"
     {
         _MainTex ("Texture", 2D) = "white" {}
         _Center ("Center", Vector) = (0.5, 0.5, 0, 0)
-        _Radius ("Radius", Float) = 0.3
+        _RadiusX ("RadiusX", Float) = 0.3
+        _RadiusY ("RadiusY", Float) = 0.2
     }
     SubShader
     {
@@ -35,7 +36,8 @@ Shader "Custom/TransparentCircle"
             sampler2D _MainTex;
             float4 _MainTex_ST;
             float2 _Center;
-            float _Radius;
+            float _RadiusX;
+            float _RadiusY;
 
             v2f vert (appdata v)
             {
@@ -50,8 +52,10 @@ Shader "Custom/TransparentCircle"
             fixed4 frag (v2f i) : SV_Target
             {
                 float2 uv = i.uv;
-                float dist = distance(uv, _Center);
-                if (dist < _Radius)
+                float distX = (uv.x - _Center.x) / _RadiusX;
+                float distY = (uv.y - _Center.y) / _RadiusY;
+                float dist = sqrt(distX * distX + distY * distY);
+                if (dist < 1.0)
                 {
                     discard;
                 }

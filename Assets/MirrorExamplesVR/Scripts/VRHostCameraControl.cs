@@ -46,6 +46,11 @@ public class VRHostCameraControl : NetworkBehaviour
     private Vector3 syncedPosition;
     //[SyncVar]
     private Quaternion syncedRotation;
+
+    private Quaternion PreRotation;
+
+    [SyncVar]
+    private int rotlevel;
     // Send the action of VR origin to all clients
     [SyncVar]
     private Vector3 ServerCenterposition;
@@ -66,6 +71,8 @@ public class VRHostCameraControl : NetworkBehaviour
 
         frameRateInterval = 1.0f / 3.0f;
 
+        rotlevel = 0;
+
         fpsText = GameObject.FindGameObjectWithTag("Fpsdisplay").GetComponent<TMP_Text>();
 
         if(isServer){
@@ -83,6 +90,8 @@ public class VRHostCameraControl : NetworkBehaviour
             mask = maskSelect.GetComponent<TMP_Dropdown>();
             // Initiate the recorddropdown
             record = recordSelect.GetComponent<TMP_Dropdown>();
+
+            PreRotation = maincamera.transform.rotation;
             
             masktype = mask.value;
 
@@ -107,6 +116,7 @@ public class VRHostCameraControl : NetworkBehaviour
     {
         if (isServer)
         {
+
             Countfps();
             if (Time.time < nextFrameTime)
             {
@@ -115,9 +125,10 @@ public class VRHostCameraControl : NetworkBehaviour
             }else{
                 // Get the action of main camera from the Server
                 SyncTransform(maincamera.transform.position, maincamera.transform.rotation);
+                rotlevel = CalMotionLevel(PreRotation, maincamera.transform.rotation);
                 //syncedPosition = maincamera.transform.position;
                 //syncedRotation = maincamera.transform.rotation;
-
+                PreRotation = maincamera.transform.rotation;
                 // Get the action of VR origin from the Server
                 ServerCenterposition = Centerposition.position;
                 ServerCenterRatation = Centerposition.rotation;
@@ -162,6 +173,32 @@ public class VRHostCameraControl : NetworkBehaviour
                     maincamera.transform.position = syncedPosition;
                     maincamera.transform.rotation = syncedRotation;
                     subcamera.transform.position = new Vector3(syncedPosition.x + 6.5f, syncedPosition.y + 2.0f, syncedPosition.z + 40f);
+                    switch(rotlevel){
+                        case 0:
+                            Image_Mask1.GetComponent<RawImage>().material.SetFloat("_RadiusX", 0.19f);
+                            Image_Mask1.GetComponent<RawImage>().material.SetFloat("_RadiusY", 0.17f);
+                            break;
+                        case 1:
+                            Image_Mask1.GetComponent<RawImage>().material.SetFloat("_RadiusX", 0.17f);
+                            Image_Mask1.GetComponent<RawImage>().material.SetFloat("_RadiusY", 0.15f);
+                            break;
+                        case 2:
+                            Image_Mask1.GetComponent<RawImage>().material.SetFloat("_RadiusX", 0.15f);
+                            Image_Mask1.GetComponent<RawImage>().material.SetFloat("_RadiusY", 0.13f);
+                            break;
+                        case 3:
+                            Image_Mask1.GetComponent<RawImage>().material.SetFloat("_RadiusX", 0.14f);
+                            Image_Mask1.GetComponent<RawImage>().material.SetFloat("_RadiusY", 0.12f);
+                            break;
+                        case 4:
+                            Image_Mask1.GetComponent<RawImage>().material.SetFloat("_RadiusX", 0.13f);
+                            Image_Mask1.GetComponent<RawImage>().material.SetFloat("_RadiusY", 0.11f);
+                            break;
+                        default:
+                            
+                            break;
+                            
+                    }
                 }else{
                     maincamera.transform.position = syncedPosition;
                     maincamera.transform.rotation = syncedRotation;
@@ -177,6 +214,38 @@ public class VRHostCameraControl : NetworkBehaviour
                 Countfps();       
             }    
         }
+    }
+    int CalMotionLevel(Quaternion q1, Quaternion q2)
+    {
+        // 计算两个四元数之间的点积
+        float dotProduct = Quaternion.Dot(q1, q2);
+        
+        // 限制点积的范围在[-1, 1]之间
+        dotProduct = Mathf.Clamp(dotProduct, -1.0f, 1.0f);
+        
+        // 计算角度（以弧度为单位）
+        float angleInRadians = Mathf.Acos(dotProduct) * 2.0f;
+        
+        // 将角度转换为度数
+        float angleInDegrees = Mathf.Abs(angleInRadians * Mathf.Rad2Deg);
+
+        Debug.Log(angleInDegrees);
+
+        int level = 0;
+        if (angleInDegrees >= 0.0f && angleInDegrees < 10.0f){
+            level = 0;
+        }
+        else if (angleInDegrees >= 10.0f && angleInDegrees <= 30.0f){
+            level = 1;
+        }else if(angleInDegrees >30.0f && angleInDegrees <= 50.0f){
+            level = 2;
+        }else if(angleInDegrees >50.0f && angleInDegrees <= 70.0f){
+            level = 3;
+        }else if(angleInDegrees >70.0f && angleInDegrees <= 90.0f){
+            level = 4;
+        }
+
+        return level;
     }
     void DropdownValueChanged(TMP_Dropdown change)
     {
@@ -294,7 +363,7 @@ public class VRHostCameraControl : NetworkBehaviour
             subcamera.GetComponent<TrackedPoseDriver>().enabled = flag;
             subcamera.GetComponent<TrackedPoseDriver>().trackingType = TrackedPoseDriver.TrackingType.RotationOnly;
             maincamera.GetComponent<Camera>().fieldOfView = 50f;
-            subcamera.GetComponent<Camera>().fieldOfView = 85f;
+            subcamera.GetComponent<Camera>().fieldOfView = 80f;
         }else{
             subcamera.GetComponent<TrackedPoseDriver>().enabled = flag;
             subcamera.GetComponent<Camera>().fieldOfView = 80f;
@@ -306,6 +375,7 @@ public class VRHostCameraControl : NetworkBehaviour
         LeftHand.GetComponent<ActionBasedControllerManager>().enabled = !flag;
         RightHand.GetComponent<ActionBasedControllerManager>().enabled = !flag;        
     }
+    
     [ClientRpc]
     private void SyncTransform(Vector3 pos, Quaternion rot){
         syncedPosition = pos;
