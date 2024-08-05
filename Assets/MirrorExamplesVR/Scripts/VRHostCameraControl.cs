@@ -6,6 +6,7 @@ using UnityEngine.Rendering;
 using Unity.VisualScripting;
 using UnityEngine.UI;
 using UnityEngine.XR.Interaction.Toolkit.Samples.StarterAssets;
+using Unity.XR.CoreUtils;
 public class VRHostCameraControl : NetworkBehaviour
 {
     
@@ -22,6 +23,7 @@ public class VRHostCameraControl : NetworkBehaviour
     public GameObject recordSelect;
     public GameObject LeftHand;
     public GameObject RightHand;
+    public GameObject Mark;
     private TMP_Dropdown dropdownfps;
     public TMP_Text fpsText;
     private TMP_Dropdown mask;
@@ -49,7 +51,7 @@ public class VRHostCameraControl : NetworkBehaviour
 
     private Quaternion PreRotation;
 
-    [SyncVar]
+    // [SyncVar]
     private int rotlevel;
     // Send the action of VR origin to all clients
     [SyncVar]
@@ -118,98 +120,116 @@ public class VRHostCameraControl : NetworkBehaviour
         {
 
             Countfps();
-            if (Time.time < nextFrameTime)
+            
+            // Get the action of main camera from the Server
+            SyncTransform(maincamera.transform.position, maincamera.transform.rotation);
+
+            //rotlevel = CalMotionLevel(PreRotation, maincamera.transform.rotation);
+            //syncedPosition = maincamera.transform.position;
+            //syncedRotation = maincamera.transform.rotation;
+            //PreRotation = maincamera.transform.rotation;
+
+            // Get the action of VR origin from the Server
+            ServerCenterposition = Centerposition.position;
+            ServerCenterRatation = Centerposition.rotation;
+
+            /*if (Time.time < nextFrameTime)
             {
                 return;
                 
             }else{
-                // Get the action of main camera from the Server
-                SyncTransform(maincamera.transform.position, maincamera.transform.rotation);
-                rotlevel = CalMotionLevel(PreRotation, maincamera.transform.rotation);
-                //syncedPosition = maincamera.transform.position;
-                //syncedRotation = maincamera.transform.rotation;
-                PreRotation = maincamera.transform.rotation;
-                // Get the action of VR origin from the Server
-                ServerCenterposition = Centerposition.position;
-                ServerCenterRatation = Centerposition.rotation;
             }    
-            nextFrameTime = Time.time + frameRateInterval;  
+            nextFrameTime = Time.time + frameRateInterval;*/
         }
         if (isClient && !isServer) // Make sure the change is on clients
         {
-            if(play == true && actionrecord.NumOfRecords() > 0){
-                // Control the action of the Clients' main camera by the data from the Server
-                if(masktype == 3){
-                    subcamera.transform.position = actionrecord.GetCamerapositions(recordtype, index);
-                    subcamera.transform.rotation = actionrecord.GetCamerarotations(recordtype, index);
-                }else{
-                    maincamera.transform.position = actionrecord.GetCamerapositions(recordtype, index);
-                    maincamera.transform.rotation = actionrecord.GetCamerarotations(recordtype, index);
-                }       
-                // Control the action of the Clients' VR origin by the data from the Server
-                // Centerposition.position = ServerCenterposition;
-                // Centerposition.rotation = ServerCenterRatation;
-
-                // Read the record action data with the interval of fps
-                index += (60 * frameRateInterval).ConvertTo<int>(); 
-
-                // If read all the action of one record, stop reading the record
-                if(index >= actionrecord.Numofactions(recordtype)){
-                    index = 0;
-                    play = false;
-                }
-            }else{
-                // Control the action of the Clients' VR origin by the data from the Server
-                // Centerposition.position = ServerCenterposition;
-                // Centerposition.rotation = ServerCenterRatation;
-
-                // Control the action of the Clients' main camera by the data from the Server
-                if(masktype == 3){
-                    subcamera.transform.position = syncedPosition;
-                    subcamera.transform.rotation = syncedRotation;
-                    maincamera.transform.position = syncedPosition; 
-                    //maincamera.transform.rotation = syncedRotation;
-                }else if(masktype == 5){
-                    maincamera.transform.position = syncedPosition;
-                    maincamera.transform.rotation = syncedRotation;
-                    subcamera.transform.position = new Vector3(syncedPosition.x + 6.5f, syncedPosition.y + 2.0f, syncedPosition.z + 40f);
-                    switch(rotlevel){
-                        case 0:
-                            Image_Mask1.GetComponent<RawImage>().material.SetFloat("_RadiusX", 0.19f);
-                            Image_Mask1.GetComponent<RawImage>().material.SetFloat("_RadiusY", 0.17f);
-                            break;
-                        case 1:
-                            Image_Mask1.GetComponent<RawImage>().material.SetFloat("_RadiusX", 0.17f);
-                            Image_Mask1.GetComponent<RawImage>().material.SetFloat("_RadiusY", 0.15f);
-                            break;
-                        case 2:
-                            Image_Mask1.GetComponent<RawImage>().material.SetFloat("_RadiusX", 0.15f);
-                            Image_Mask1.GetComponent<RawImage>().material.SetFloat("_RadiusY", 0.13f);
-                            break;
-                        case 3:
-                            Image_Mask1.GetComponent<RawImage>().material.SetFloat("_RadiusX", 0.14f);
-                            Image_Mask1.GetComponent<RawImage>().material.SetFloat("_RadiusY", 0.12f);
-                            break;
-                        case 4:
-                            Image_Mask1.GetComponent<RawImage>().material.SetFloat("_RadiusX", 0.13f);
-                            Image_Mask1.GetComponent<RawImage>().material.SetFloat("_RadiusY", 0.11f);
-                            break;
-                        default:
-                            
-                            break;
-                            
-                    }
-                }else{
-                    maincamera.transform.position = syncedPosition;
-                    maincamera.transform.rotation = syncedRotation;
-                }
-            }
-            // int index = 0;
             if (Time.time < nextFrameTime)
             {
                 return;
                 
             }else{
+                if(play == true && actionrecord.NumOfRecords() > 0){
+                    // Control the action of the Clients' main camera by the data from the Server
+                    if(masktype == 3){
+                        subcamera.transform.position = actionrecord.GetCamerapositions(recordtype, index);
+                        subcamera.transform.rotation = actionrecord.GetCamerarotations(recordtype, index);
+                    }else{
+                        maincamera.transform.position = actionrecord.GetCamerapositions(recordtype, index);
+                        maincamera.transform.rotation = actionrecord.GetCamerarotations(recordtype, index);
+                    }       
+                    // Control the action of the Clients' VR origin by the data from the Server
+                    // Centerposition.position = ServerCenterposition;
+                    // Centerposition.rotation = ServerCenterRatation;
+
+                    // Read the record action data with the interval of fps
+                    index += (60 * frameRateInterval).ConvertTo<int>(); 
+
+                    // If read all the action of one record, stop reading the record
+                    if(index >= actionrecord.Numofactions(recordtype)){
+                        index = 0;
+                        play = false;
+                    }
+                }else{
+                    // Control the action of the Clients' VR origin by the data from the Server
+                    // Centerposition.position = ServerCenterposition;
+                    // Centerposition.rotation = ServerCenterRatation;
+
+                    // Control the action of the Clients' main camera by the data from the Server
+                    if(masktype == 3){
+                        subcamera.transform.position = syncedPosition;
+                        subcamera.transform.rotation = syncedRotation;
+                        maincamera.transform.position = syncedPosition; 
+                        //maincamera.transform.rotation = syncedRotation;
+                    }else if(masktype == 5){
+                        Quaternion qsubvari = Quaternion.Inverse(PreRotation)*subcamera.transform.rotation;
+                        Quaternion qmainvari = Quaternion.Inverse(maincamera.transform.rotation)*syncedRotation;
+                        Quaternion qvarui = Quaternion.Inverse(qsubvari) * qmainvari;
+                        rotlevel = CalMotionLevel(qsubvari, qmainvari);
+                        PreRotation = subcamera.transform.rotation;
+                        maincamera.transform.position = syncedPosition;
+                        maincamera.transform.rotation = syncedRotation;
+                        subcamera.transform.position = new Vector3(syncedPosition.x + 6.5f, syncedPosition.y + 2.0f, syncedPosition.z + 40f);
+                        if(rotlevel != 0){
+                            Mark.SetActive(true);
+                            Mark.GetComponent<RectTransform>().localRotation = new Quaternion(0.0f, 0.0f, qvarui.x +  qvarui.z, qvarui.w);
+                            //Mark.GetComponent<RectTransform>().eulerAngles = new Vector3(0, 0,qvarui.z);
+                            Mark.GetComponent<RectTransform>().sizeDelta = new Vector2(50 * rotlevel / 2, 10);
+                        }else{
+                            Mark.SetActive(false);
+                        }
+                        switch(rotlevel){
+                            case 0:
+                                Image_Mask1.GetComponent<RawImage>().material.SetFloat("_RadiusX", 0.23f);
+                                Image_Mask1.GetComponent<RawImage>().material.SetFloat("_RadiusY", 0.18f);
+                                break;
+                            case 1:
+                                Image_Mask1.GetComponent<RawImage>().material.SetFloat("_RadiusX", 0.20f);
+                                Image_Mask1.GetComponent<RawImage>().material.SetFloat("_RadiusY", 0.15f);
+                                break;
+                            case 2:
+                                Image_Mask1.GetComponent<RawImage>().material.SetFloat("_RadiusX", 0.17f);
+                                Image_Mask1.GetComponent<RawImage>().material.SetFloat("_RadiusY", 0.12f);
+                                break;
+                            case 3:
+                                Image_Mask1.GetComponent<RawImage>().material.SetFloat("_RadiusX", 0.14f);
+                                Image_Mask1.GetComponent<RawImage>().material.SetFloat("_RadiusY", 0.09f);
+                                break;
+                            case 4:
+                                Image_Mask1.GetComponent<RawImage>().material.SetFloat("_RadiusX", 0.11f);
+                                Image_Mask1.GetComponent<RawImage>().material.SetFloat("_RadiusY", 0.06f);
+                                break;
+                            default:
+                                
+                                break;
+                                
+                        }
+                    }else{
+                        maincamera.transform.position = syncedPosition;
+                        maincamera.transform.rotation = syncedRotation;
+                    }
+                }
+            // int index = 0;
+            
                 nextFrameTime = Time.time + frameRateInterval;
                 Countfps();       
             }    
@@ -217,16 +237,16 @@ public class VRHostCameraControl : NetworkBehaviour
     }
     int CalMotionLevel(Quaternion q1, Quaternion q2)
     {
-        // 计算两个四元数之间的点积
+        // Calulate the dot between two Quaternions
         float dotProduct = Quaternion.Dot(q1, q2);
         
-        // 限制点积的范围在[-1, 1]之间
+        // Limitate the dot between [-1, 1]
         dotProduct = Mathf.Clamp(dotProduct, -1.0f, 1.0f);
         
-        // 计算角度（以弧度为单位）
+        // Calculate the angle in Pi Radis
         float angleInRadians = Mathf.Acos(dotProduct) * 2.0f;
         
-        // 将角度转换为度数
+        // Change the angle to °
         float angleInDegrees = Mathf.Abs(angleInRadians * Mathf.Rad2Deg);
 
         Debug.Log(angleInDegrees);
@@ -258,10 +278,13 @@ public class VRHostCameraControl : NetworkBehaviour
                 frameRateInterval = 1.0f / 5.0f;
                 break;
             case 2:
-                frameRateInterval = 1.0f / 10.0f;
+                frameRateInterval = 1.0f / 15.0f;
                 break;
             case 3:
-                frameRateInterval = 1.0f / 15.0f;
+                frameRateInterval = 1.0f / 25.0f;
+                break;
+            case 4:
+                frameRateInterval = 1.0f / 35.0f;
                 break;
             default:
                 break;
