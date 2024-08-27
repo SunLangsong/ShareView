@@ -53,6 +53,8 @@ public class VRHostCameraControl : NetworkBehaviour
 
     // [SyncVar]
     private int rotlevel;
+
+    private float rotangle;
     // Send the action of VR origin to all clients
     [SyncVar]
     private Vector3 ServerCenterposition;
@@ -74,6 +76,8 @@ public class VRHostCameraControl : NetworkBehaviour
         frameRateInterval = 1.0f / 3.0f;
 
         rotlevel = 0;
+
+        rotangle = 0.0f;
 
         fpsText = GameObject.FindGameObjectWithTag("Fpsdisplay").GetComponent<TMP_Text>();
 
@@ -184,20 +188,22 @@ public class VRHostCameraControl : NetworkBehaviour
                         Quaternion qsubvari = Quaternion.Inverse(PreRotation)*subcamera.transform.rotation;
                         Quaternion qmainvari = Quaternion.Inverse(maincamera.transform.rotation)*syncedRotation;
                         Quaternion qvarui = Quaternion.Inverse(qsubvari) * qmainvari;
-                        rotlevel = CalMotionLevel(qsubvari, qmainvari);
+                        rotangle = CalMotionAngle(qsubvari, qmainvari);
                         PreRotation = subcamera.transform.rotation;
                         maincamera.transform.position = syncedPosition;
                         maincamera.transform.rotation = syncedRotation;
                         subcamera.transform.position = new Vector3(syncedPosition.x + 6.5f, syncedPosition.y + 2.0f, syncedPosition.z + 40f);
-                        if(rotlevel != 0){
-                            Mark.SetActive(true);
+                        if(rotangle != 0){
+                            //Mark.SetActive(true);
                             Mark.GetComponent<RectTransform>().localRotation = new Quaternion(0.0f, 0.0f, qvarui.x +  qvarui.z, qvarui.w);
                             //Mark.GetComponent<RectTransform>().eulerAngles = new Vector3(0, 0,qvarui.z);
                             Mark.GetComponent<RectTransform>().sizeDelta = new Vector2(50 * rotlevel / 2, 10);
                         }else{
                             Mark.SetActive(false);
                         }
-                        switch(rotlevel){
+                        Image_Mask1.GetComponent<RawImage>().material.SetFloat("_RadiusX", -2.0f / 1500.0f * rotangle + 0.20f);
+                        Image_Mask1.GetComponent<RawImage>().material.SetFloat("_RadiusY", -2.0f / 1500.0f * rotangle + 0.15f);
+                        /*switch(rotlevel){
                             case 0:
                                 Image_Mask1.GetComponent<RawImage>().material.SetFloat("_RadiusX", 0.23f);
                                 Image_Mask1.GetComponent<RawImage>().material.SetFloat("_RadiusY", 0.18f);
@@ -222,7 +228,7 @@ public class VRHostCameraControl : NetworkBehaviour
                                 
                                 break;
                                 
-                        }
+                        }*/
                     }else{
                         maincamera.transform.position = syncedPosition;
                         maincamera.transform.rotation = syncedRotation;
@@ -235,7 +241,7 @@ public class VRHostCameraControl : NetworkBehaviour
             }    
         }
     }
-    int CalMotionLevel(Quaternion q1, Quaternion q2)
+    float CalMotionAngle(Quaternion q1, Quaternion q2)
     {
         // Calulate the dot between two Quaternions
         float dotProduct = Quaternion.Dot(q1, q2);
@@ -249,9 +255,13 @@ public class VRHostCameraControl : NetworkBehaviour
         // Change the angle to °
         float angleInDegrees = Mathf.Abs(angleInRadians * Mathf.Rad2Deg);
 
+        angleInDegrees /= frameRateInterval * 3;
+
+        angleInDegrees = Mathf.Ceil(angleInDegrees / 10) * 10;
+
         Debug.Log(angleInDegrees);
 
-        int level = 0;
+        /*int level = 0;
         if (angleInDegrees >= 0.0f && angleInDegrees < 10.0f){
             level = 0;
         }
@@ -263,9 +273,9 @@ public class VRHostCameraControl : NetworkBehaviour
             level = 3;
         }else if(angleInDegrees >70.0f && angleInDegrees <= 90.0f){
             level = 4;
-        }
+        }*/
 
-        return level;
+        return angleInDegrees;
     }
     void DropdownValueChanged(TMP_Dropdown change)
     {
