@@ -201,8 +201,8 @@ public class VRHostCameraControl : NetworkBehaviour
                         }else{
                             Mark.SetActive(false);
                         }
-                        Image_Mask1.GetComponent<RawImage>().material.SetFloat("_RadiusX", -2.0f / 1500.0f * rotangle + 0.20f);
-                        Image_Mask1.GetComponent<RawImage>().material.SetFloat("_RadiusY", -2.0f / 1500.0f * rotangle + 0.15f);
+                        Image_Mask1.GetComponent<RawImage>().material.SetFloat("_RadiusX", -2.0f / 1500.0f * rotangle + 0.23f);
+                        Image_Mask1.GetComponent<RawImage>().material.SetFloat("_RadiusY", -2.0f / 1500.0f * rotangle + 0.18f);
                         /*switch(rotlevel){
                             case 0:
                                 Image_Mask1.GetComponent<RawImage>().material.SetFloat("_RadiusX", 0.23f);
