@@ -15,7 +15,7 @@ public class ServerActionRecording : NetworkBehaviour
     private TMP_Dropdown record;
     private bool isRecording = false;
     private float recordingTime = 0.0f;
-    private float recordInterval = 1.0f / 60.0f;
+    private float recordInterval = 1.0f / 35.0f;
     private float timer;
     public Transform serverCameraTransform;
     public Transform Centerposition;
