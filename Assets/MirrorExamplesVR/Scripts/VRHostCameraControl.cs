@@ -49,8 +49,9 @@ public class VRHostCameraControl : NetworkBehaviour
     private int index = 0;
     // Check the condition of the record selected
     private bool play = false;
-    private List<Vector3> starts = new List<Vector3>(4);
-    private List<Vector3> ends = new List<Vector3>(4);
+    private static int sizeOfPoints = 4;
+    private List<Vector3> starts = new List<Vector3>(sizeOfPoints);
+    private List<Vector3> ends = new List<Vector3>(sizeOfPoints);
     Vector3 start = new Vector3(-110f, -70f, -2f);
     Vector3 end = new Vector3(0, 0, 0);
     private List<Image> lines = new List<Image>();
@@ -273,6 +274,7 @@ public class VRHostCameraControl : NetworkBehaviour
             }
         }          
     }
+    // Arrange the size of the center elliptic and the draw the points
     private void ChangetheCenterAndAttach(){
         // Get the rotation of main and sub camera
         Quaternion qsubvari = Quaternion.Inverse(PreRotation)*subcamera.transform.rotation;
@@ -305,7 +307,7 @@ public class VRHostCameraControl : NetworkBehaviour
             // Calculate the end point of the line
             end = CalculateEndPoint(start, uiRotation + 180, rotangle / 2);
             Vector3 plus = CalculateEndPointToPlus(uiRotation + 180, rotangle / 2);
-            for(int i = 0; i < 4; i++)
+            for(int i = 0; i < sizeOfPoints; i++)
             {
                 ends[i] = new Vector3(starts[i].x + plus.x, starts[i].y + plus.y, starts[i].z);
             }
@@ -316,17 +318,17 @@ public class VRHostCameraControl : NetworkBehaviour
             // Draw the dot with the two points 
             DrawDotInMask();
             // Reset the start point
-            for(int i = 0; i < 4; i++)
+            for(int i = 0; i < sizeOfPoints; i++)
             {
                 starts[i] = new Vector3(ends[i].x, ends[i].y, ends[i].z);
             }
             start.Set(end.x, end.y, end.z);
 
-            //Mark.GetComponent<RectTransform>().localRotation = new Quaternion(0.0f, 0.0f, qvarui.x +  qvarui.z, qvarui.w);
-            //Mark.GetComponent<RectTransform>().localRotation.eulerAngles = new Vector3(0, 0,qvarui.z);
-            Mark.GetComponent<RectTransform>().sizeDelta = new Vector2(Math.Abs(rotangle) / 2, 10);
+            // Mark.GetComponent<RectTransform>().localRotation = new Quaternion(0.0f, 0.0f, qvarui.x +  qvarui.z, qvarui.w);
+            // Mark.GetComponent<RectTransform>().localRotation.eulerAngles = new Vector3(0, 0,qvarui.z);
+            // Mark.GetComponent<RectTransform>().sizeDelta = new Vector2(Math.Abs(rotangle) / 2, 10);
         }else{
-            Mark.SetActive(false);
+            // Mark.SetActive(false);
             lines.ForEach(img => Destroy(img.gameObject));
             lines.Clear();
         }
@@ -412,7 +414,7 @@ public class VRHostCameraControl : NetworkBehaviour
         lines.Clear();
         // dotIsMoving = true;
         
-        for(int i = 0; i < 4; i++){
+        for(int i = 0; i < sizeOfPoints; i++){
             // Create a new line object
             Image dot = Instantiate(DotImagePrefab);
 
@@ -423,7 +425,7 @@ public class VRHostCameraControl : NetworkBehaviour
 
             // Get the RectTransform to set the dot
             RectTransform dotRectTransform = dot.GetComponent<RectTransform>();
-            dotRectTransform.sizeDelta = new Vector2(6f, 6f);
+            dotRectTransform.sizeDelta = new Vector2(10f, 10f);
         }
         
         StartCoroutine(MoveDotCoroutine());
@@ -431,9 +433,9 @@ public class VRHostCameraControl : NetworkBehaviour
     private IEnumerator MoveDotCoroutine(){
         float elapsedTime = 0f;
 
-        while(elapsedTime < intervalForCenterChange){
+        while(lines.Count >= sizeOfPoints && elapsedTime < intervalForCenterChange){
             float t = elapsedTime / intervalForCenterChange;
-            for(int i = 0; i < 4; i++){
+            for(int i = 0; i < sizeOfPoints; i++){
                 lines[i].rectTransform.localPosition = Vector3.Lerp(starts[i], ends[i], t);
             }
 
