@@ -38,6 +38,7 @@ public class VRHostCameraControl : NetworkBehaviour
     // The time to play next frame on all clients
     private float nextFrameTime = 0.0f;
     private float nextCenterTime = 0.0f;
+    private float nextDotTime = 0.0f;
 
     private float nextsecond = 0.0f;
 
@@ -49,7 +50,7 @@ public class VRHostCameraControl : NetworkBehaviour
     private int index = 0;
     // Check the condition of the record selected
     private bool play = false;
-    private static int sizeOfPoints = 4;
+    private static int sizeOfPoints = 8;
     private List<Vector3> starts = new List<Vector3>(sizeOfPoints);
     private List<Vector3> ends = new List<Vector3>(sizeOfPoints);
     Vector3 start = new Vector3(-110f, -70f, -2f);
@@ -74,10 +75,15 @@ public class VRHostCameraControl : NetworkBehaviour
     private Quaternion PreRotation;
 
     private Quaternion PreMainRotation;
+    
+    private Quaternion PreRotationDot;
+
+    private Quaternion PreMainRotationDot;
 
     private float rotangle;
 
     private float intervalForCenterChange;
+    private float intervalForDotChange;
     // Send the action of VR origin to all clients
     [SyncVar]
     private Vector3 ServerCenterposition;
@@ -100,6 +106,8 @@ public class VRHostCameraControl : NetworkBehaviour
 
         intervalForCenterChange = 1.0f / 3.0f;
 
+        intervalForDotChange = 1.0f / 6.0f;
+
         dotIsMoving = true;
 
         rotangle = 0.0f;
@@ -108,6 +116,14 @@ public class VRHostCameraControl : NetworkBehaviour
         starts.Add(new Vector3(110f, -70f, -2f));
         starts.Add(new Vector3(-110f, 70f, -2f));
         starts.Add(new Vector3(110f, 70f, -2f));
+        starts.Add(new Vector3(-110f, 0f, -2f));
+        starts.Add(new Vector3(110f, 0f, -2f));
+        starts.Add(new Vector3(0f, -70f, -2f));
+        starts.Add(new Vector3(0f, 70f, -2f));
+        ends.Add(new Vector3(0f, 0f, 0f));
+        ends.Add(new Vector3(0f, 0f, 0f));
+        ends.Add(new Vector3(0f, 0f, 0f));
+        ends.Add(new Vector3(0f, 0f, 0f));
         ends.Add(new Vector3(0f, 0f, 0f));
         ends.Add(new Vector3(0f, 0f, 0f));
         ends.Add(new Vector3(0f, 0f, 0f));
@@ -132,6 +148,12 @@ public class VRHostCameraControl : NetworkBehaviour
             record = recordSelect.GetComponent<TMP_Dropdown>();
 
             PreRotation = subcamera.transform.rotation;
+
+            PreRotationDot = subcamera.transform.rotation;
+
+            PreMainRotation = maincamera.transform.rotation;
+
+            PreMainRotationDot = maincamera.transform.rotation;
             
             masktype = mask.value;
 
@@ -249,18 +271,26 @@ public class VRHostCameraControl : NetworkBehaviour
                 // Initiate the start point
                 if(nextsecond <= nextFrameTime - 1.5f){
                     nextsecond = nextFrameTime;
-                    start = new Vector3(-110f, -70f, -2f);
+                    //start = new Vector3(-110f, -70f, -2f);
                     starts[0] = new Vector3(-110f, -70f, -2f);
                     starts[1] = new Vector3(110f, -70f, -2f);
                     starts[2] = new Vector3(-110f, 70f, -2f);
                     starts[3] = new Vector3(110f, 70f, -2f);
+                    starts[4] = new Vector3(-110f, 0f, -2f);
+                    starts[5] = new Vector3(110f, 0f, -2f);
+                    starts[6] = new Vector3(0f, -70f, -2f);
+                    starts[7] = new Vector3(0f, 70f, -2f);
                     ends[0] = new Vector3(0f, 0f, 0f);
                     ends[1] = new Vector3(0f, 0f, 0f);
                     ends[2] = new Vector3(0f, 0f, 0f);
                     ends[3] = new Vector3(0f, 0f, 0f);
+                    ends[4] = new Vector3(0f, 0f, 0f);
+                    ends[5] = new Vector3(0f, 0f, 0f);
+                    ends[6] = new Vector3(0f, 0f, 0f);
+                    ends[7] = new Vector3(0f, 0f, 0f);
                     lines.ForEach(img => Destroy(img.gameObject));
                     lines.Clear();
-                    end = new Vector3(0, 0, 0);
+                    //end = new Vector3(0, 0, 0);
                     //lines.ForEach(img => Destroy(img.gameObject));
                     //lines.Clear();
                 }
@@ -269,16 +299,22 @@ public class VRHostCameraControl : NetworkBehaviour
             if(Time.time >= nextCenterTime){
                 nextCenterTime = Time.time + intervalForCenterChange;
                 if(masktype == 5){
-                    ChangetheCenterAndAttach();
+                    ChangetheCenterSize();
+                }
+            }
+            if(Time.time >= nextDotTime){
+                nextDotTime = Time.time + intervalForDotChange;
+                if(masktype == 5){
+                    ChangetheDotPosition();
                 }
             }
         }          
     }
-    // Arrange the size of the center elliptic and the draw the points
-    private void ChangetheCenterAndAttach(){
+    // Change the position of the points
+    private void ChangetheDotPosition(){
         // Get the rotation of main and sub camera
-        Quaternion qsubvari = Quaternion.Inverse(PreRotation)*subcamera.transform.rotation;
-        Quaternion qmainvari = Quaternion.Inverse(PreMainRotation)*TempRotation;
+        Quaternion qsubvari = Quaternion.Inverse(PreRotationDot)*subcamera.transform.rotation;
+        Quaternion qmainvari = Quaternion.Inverse(PreMainRotationDot)*TempRotation;
 
         // Get the rotation between the main and sub camera(with direction)
         Quaternion qvarui = Quaternion.Inverse(qsubvari) * qmainvari;
@@ -293,11 +329,11 @@ public class VRHostCameraControl : NetworkBehaviour
 
         // Get the rotation angle between main and sub camera(no direction)
         rotangle = CalMotionAngle(qsubvari, qmainvari);
-        Debug.Log(rotangle);
+        // Debug.Log(rotangle);
 
         // Update the camera data
-        PreRotation = subcamera.transform.rotation;
-        PreMainRotation = TempRotation;
+        PreRotationDot = subcamera.transform.rotation;
+        PreMainRotationDot = TempRotation;
 
         // Draw the line when the angle between main and sub camera is over 10. 
         if(rotangle >= 10){
@@ -311,7 +347,7 @@ public class VRHostCameraControl : NetworkBehaviour
             {
                 ends[i] = new Vector3(starts[i].x + plus.x, starts[i].y + plus.y, starts[i].z);
             }
-            Debug.Log(end + " " + starts[0]);
+            // Debug.Log(end + " " + starts[0]);
             // Draw the line with the two points 
             // DrawLineInMask(start, end, uiRotation + 180);
 
@@ -332,6 +368,33 @@ public class VRHostCameraControl : NetworkBehaviour
             lines.ForEach(img => Destroy(img.gameObject));
             lines.Clear();
         }
+    } 
+    // Arrange the size of the center elliptic
+    private void ChangetheCenterSize(){
+        // Get the rotation of main and sub camera
+        Quaternion qsubvari = Quaternion.Inverse(PreRotation)*subcamera.transform.rotation;
+        Quaternion qmainvari = Quaternion.Inverse(PreMainRotation)*TempRotation;
+
+        // Get the rotation between the main and sub camera(with direction)
+        Quaternion qvarui = Quaternion.Inverse(qsubvari) * qmainvari;
+        //Vector3 eulerRotation = qvarui.eulerAngles;
+        Vector3 eulerRotation = qvarui * Vector3.forward;
+        //float uiRotation = eulerRotation.z + eulerRotation.x * Mathf.Sign(Mathf.Cos(eulerRotation.y * Mathf.Deg2Rad));
+
+        // Get the projection of rotation on xy plane
+        eulerRotation.z = 0;
+        eulerRotation.Normalize();
+        float uiRotation = Mathf.Atan2(eulerRotation.y, eulerRotation.x) * Mathf.Rad2Deg;
+
+        // Get the rotation angle between main and sub camera(no direction)
+        rotangle = CalMotionAngle(qsubvari, qmainvari);
+        // Debug.Log(rotangle);
+
+        // Update the camera data
+        PreRotation = subcamera.transform.rotation;
+        PreMainRotation = TempRotation;
+
+        
         Image_Mask1.GetComponent<RawImage>().material.SetFloat("_RadiusX", -2.0f / 1500.0f * Math.Abs(rotangle) + 0.23f);
         Image_Mask1.GetComponent<RawImage>().material.SetFloat("_RadiusY", -2.0f / 1500.0f * Math.Abs(rotangle) + 0.18f);
     }
@@ -433,8 +496,8 @@ public class VRHostCameraControl : NetworkBehaviour
     private IEnumerator MoveDotCoroutine(){
         float elapsedTime = 0f;
 
-        while(lines.Count >= sizeOfPoints && elapsedTime < intervalForCenterChange){
-            float t = elapsedTime / intervalForCenterChange;
+        while(lines.Count >= sizeOfPoints && elapsedTime < intervalForDotChange){
+            float t = elapsedTime / intervalForDotChange;
             for(int i = 0; i < sizeOfPoints; i++){
                 lines[i].rectTransform.localPosition = Vector3.Lerp(starts[i], ends[i], t);
             }
