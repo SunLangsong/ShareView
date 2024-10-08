@@ -51,7 +51,8 @@ namespace kcp2k
 
         [Header("Allowed Max Message Sizes\nBased on Receive Window Size")]
         [Tooltip("KCP reliable max message size shown for convenience. Can be changed via ReceiveWindowSize.")]
-        [ReadOnly] public int ReliableMaxMessageSize = 0; // readonly, displayed from OnValidate
+        // [ReadOnly] 
+        public int ReliableMaxMessageSize = 0; // readonly, displayed from OnValidate
         [Tooltip("KCP unreliable channel max message size for convenience. Not changeable.")]
         [ReadOnly] public int UnreliableMaxMessageSize = 0; // readonly, displayed from OnValidate
 
@@ -140,7 +141,7 @@ namespace kcp2k
         {
             // show max message sizes in inspector for convenience.
             // 'config' isn't available in edit mode yet, so use MTU define.
-            ReliableMaxMessageSize = KcpPeer.ReliableMaxMessageSize(MTU, ReceiveWindowSize);
+            // ReliableMaxMessageSize = KcpPeer.ReliableMaxMessageSize(MTU, ReceiveWindowSize);
             UnreliableMaxMessageSize = KcpPeer.UnreliableMaxMessageSize(MTU);
         }
 

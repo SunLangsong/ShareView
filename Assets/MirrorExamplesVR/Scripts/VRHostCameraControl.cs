@@ -27,6 +27,9 @@ public class VRHostCameraControl : NetworkBehaviour
     public GameObject LeftHand;
     public GameObject RightHand;
     public GameObject Mark;
+    public GameObject Box15;
+    
+    public List<GameObject> Boxes = new List<GameObject>();
     private TMP_Dropdown dropdownfps;
     public TMP_Text fpsText;
     private TMP_Dropdown mask;
@@ -43,7 +46,7 @@ public class VRHostCameraControl : NetworkBehaviour
     private float nextsecond = 0.0f;
 
     public Transform Centerposition;
-    private ServerActionRecording actionrecord;
+    public ServerActionRecording actionrecord;
     // The index of record to play 
     private int recordtype = 0;
     // The index of the action in the record selected
@@ -63,11 +66,20 @@ public class VRHostCameraControl : NetworkBehaviour
     public float lineWidth = 20f;
     public float lineDisplayDuration = 0.9f;
     // Send the action of main camera to all clients
-    //[SyncVar]
-    private Vector3 syncedPosition;
+    private List<Vector3> SyncBoxPositions = new List<Vector3>(30);
+    [SyncVar]
+    private List<Vector3> BoxPositions = new List<Vector3>(30);
 
+    private Vector3 Box15position;
+    private List<Vector3> TempBoxpositions = new List<Vector3>();
+    private Vector3 syncedPosition;
+    private List<Quaternion> SyncBoxRotations = new List<Quaternion>(30);
+    [SyncVar]
+    private List<Quaternion> BoxRotations = new List<Quaternion>(30);
     private Vector3 TempPosition;
     //[SyncVar]
+    private Quaternion Box15rotation;
+    private List<Quaternion> TempBoxrotations = new List<Quaternion>();
     private Quaternion syncedRotation;
 
     private Quaternion TempRotation;
@@ -100,7 +112,7 @@ public class VRHostCameraControl : NetworkBehaviour
     void Start(){
         maincamera = GameObject.FindWithTag("MainCamera");
 
-        actionrecord = GameObject.FindObjectOfType<ServerActionRecording>().GetComponent<ServerActionRecording>();
+        // actionrecord = GameObject.FindObjectOfType<ServerActionRecording>().GetComponent<ServerActionRecording>();
 
         frameRateInterval = 1.0f / 3.0f;
 
@@ -111,6 +123,11 @@ public class VRHostCameraControl : NetworkBehaviour
         dotIsMoving = true;
 
         rotangle = 0.0f;
+        
+        for(int i = 0; i < 30; i++){
+            TempBoxpositions.Add(new Vector3(0, 0, 0));
+            TempBoxrotations.Add(new Quaternion(0f, 0f, 0f, 0f));
+        }
 
         starts.Add(new Vector3(-110f, -70f, -2f));
         starts.Add(new Vector3(110f, -70f, -2f));
@@ -132,6 +149,11 @@ public class VRHostCameraControl : NetworkBehaviour
         fpsText = GameObject.FindGameObjectWithTag("Fpsdisplay").GetComponent<TMP_Text>();
 
         if(isServer){
+            for(int i = 0; i < 30; i++){
+                SyncBoxPositions.Add(Boxes[i].transform.position);
+                SyncBoxRotations.Add(Boxes[i].transform.rotation);
+                //Debug.Log(BoxPositions[i]);
+            }
             // Active the fps controller 
             fpsSelect.SetActive(true);
             // Active the mask controller 
@@ -185,7 +207,11 @@ public class VRHostCameraControl : NetworkBehaviour
             
             // Get the action of main camera from the Server
             SyncTransform(maincamera.transform.position, maincamera.transform.rotation);
-
+            for(int i = 0; i < 30; i++){
+                SyncBoxPositions[i] = Boxes[i].transform.position;
+                SyncBoxRotations[i] = Boxes[i].transform.rotation;
+            }
+            SyncBoxTransforms(SyncBoxPositions, SyncBoxRotations);
             //syncedPosition = maincamera.transform.position;
             //syncedRotation = maincamera.transform.rotation;
             //PreRotation = maincamera.transform.rotation;
@@ -197,10 +223,10 @@ public class VRHostCameraControl : NetworkBehaviour
         }
         if (isClient && !isServer) // Make sure the change is on clients
         {
-            
+            //SyncBoxTransforms(Boxes);
             if (Time.time < nextFrameTime)
             {
-                // Control the action of the Clients' main camera by the data from the Server
+                // Control the action of the Clients' main camera by the data from the Server, make sure the Client Camera not move between two frames
                 if(masktype == 3){
                     subcamera.transform.position = TempPosition;
                     subcamera.transform.rotation = TempRotation;
@@ -216,6 +242,11 @@ public class VRHostCameraControl : NetworkBehaviour
                     maincamera.transform.position = TempPosition;
                     maincamera.transform.rotation = TempRotation;
                 }
+                for(int i = 0; i < 30; i++){
+                    Boxes[i].transform.position = TempBoxpositions[i];
+                    Boxes[i].transform.rotation = TempBoxrotations[i];
+                }
+                
                 //return;
                 
             }else{
@@ -223,6 +254,9 @@ public class VRHostCameraControl : NetworkBehaviour
                     // Control the action of the Clients' main camera by the data from the Server
                     TempPosition = actionrecord.GetCamerapositions(recordtype, index);
                     TempRotation = actionrecord.GetCamerarotations(recordtype, index);
+                    TempBoxpositions = actionrecord.GetBoxpositions(recordtype, index);
+                    TempBoxrotations = actionrecord.GetBoxrotations(recordtype, index);
+                    // Debug.Log(TempBoxpositions[14]);
                     if(masktype == 3){
                         subcamera.transform.position = TempPosition;
                         subcamera.transform.rotation = TempRotation;
@@ -231,7 +265,11 @@ public class VRHostCameraControl : NetworkBehaviour
                         maincamera.transform.position = TempPosition;
                         maincamera.transform.rotation = TempRotation;
                         subcamera.transform.position = new Vector3(TempPosition.x + 6.5f, TempPosition.y + 2.0f, TempPosition.z + 40f);
-                    }       
+                    }
+                    for(int i = 0; i < 30; i++){
+                        Boxes[i].transform.position = TempBoxpositions[i];
+                        Boxes[i].transform.rotation = TempBoxrotations[i];
+                    }     
                     // Control the action of the Clients' VR origin by the data from the Server
                     // Centerposition.position = ServerCenterposition;
                     // Centerposition.rotation = ServerCenterRatation;
@@ -263,6 +301,13 @@ public class VRHostCameraControl : NetworkBehaviour
                         maincamera.transform.rotation = syncedRotation;
                         subcamera.transform.position = new Vector3(syncedPosition.x + 6.5f, syncedPosition.y + 2.0f, syncedPosition.z + 40f);
                     }
+                    for(int i = 0; i < 30; i++){
+                        Boxes[i].transform.position = BoxPositions[i];
+                        Boxes[i].transform.rotation = BoxRotations[i];
+                        TempBoxpositions[i] = BoxPositions[i];
+                        TempBoxrotations[i] = BoxRotations[i];
+                    }
+                    
                     TempPosition = syncedPosition;
                     TempRotation = syncedRotation;
                 }
@@ -654,12 +699,19 @@ public class VRHostCameraControl : NetworkBehaviour
         LeftHand.GetComponent<ActionBasedControllerManager>().enabled = !flag;
         RightHand.GetComponent<ActionBasedControllerManager>().enabled = !flag;        
     }
-    
+     [ClientRpc]
+    private void SyncBoxTransforms(List<Vector3> boxps, List<Quaternion> boxrs){
+        BoxPositions = boxps;
+        BoxRotations = boxrs;
+
+    }
     [ClientRpc]
     private void SyncTransform(Vector3 pos, Quaternion rot){
         syncedPosition = pos;
         syncedRotation = rot;
     }
+    // [ClientRpc]
+    
     // Initiate the record to play
     [ClientRpc]
     private void Rectherecordtype(int type, bool flag, int start){
