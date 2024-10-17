@@ -11,6 +11,7 @@ Library: D:\Code\Unity Hub\Projects\ShareView\Temp\BurstOutput\tempburstlibs\arm
 --float-mode=Fast
 --assembly-defines=Assembly-CSharp;
 --assembly-defines=kcp2k;
+--assembly-defines=Meta.XR.Audio;
 --assembly-defines=Meta.XR.BuildingBlocks;
 --assembly-defines=meta.xr.mrutilitykit;
 --assembly-defines=Meta.XR.MultiplayerBlocks.Shared;
@@ -80,6 +81,7 @@ Library: D:\Code\Unity Hub\Projects\ShareView\Temp\BurstOutput\tempburstlibs\arm
 --target-framework=NetFramework
 --assembly-defines=Assembly-CSharp;
 --assembly-defines=kcp2k;
+--assembly-defines=Meta.XR.Audio;
 --assembly-defines=Meta.XR.BuildingBlocks;
 --assembly-defines=meta.xr.mrutilitykit;
 --assembly-defines=Meta.XR.MultiplayerBlocks.Shared;

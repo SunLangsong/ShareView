@@ -1,20 +1,20 @@
-using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
-using UnityEngine.UI;
 using TMPro;
 using Mirror;
-using Unity.VisualScripting;
-using Assets.OVR.Scripts;
-using UnityEngine.UIElements;
+using Newtonsoft.Json;
+using System.IO;
 using Button = UnityEngine.UI.Button;
 public class ServerActionRecording : NetworkBehaviour
 {
     public GameObject recordButton;
     public GameObject stopButton;
+    public GameObject syncButton;
     public GameObject recordSelect;
+    public GameObject NetworkObject;
     public TMP_Text timeText;
     private TMP_Dropdown record;
+    // [SyncVar]
     private bool isRecording = false;
     private float recordingTime = 0.0f;
     private float recordInterval = 1.0f / 35.0f;
@@ -30,13 +30,19 @@ public class ServerActionRecording : NetworkBehaviour
     private List<List<List<Vector3>>> SynBoxpositions;
     private List<List<Quaternion>> rotationrecords;
     private List<List<List<Quaternion>>> SynBoxrotations;
-    [SyncVar]
+    private string filePathboxp;
+    private string filePathboxr;
+    private string filePathp;
+    private string filePathr;
+    private JsonSerializerSettings setting;
+    private int countRecord = 0;
+    //[SyncVar]
     private List<List<Vector3>> Synpositionrecords;
-    [SyncVar]
+    //[SyncVar]
     private List<List<List<Vector3>>> Boxpositions;
-    [SyncVar]
+    //[SyncVar]
     private List<List<Quaternion>> Synrotationrecords;
-    [SyncVar]
+    //[SyncVar]
     private List<List<List<Quaternion>>> Boxrotations;
     //[SyncVar]
     //private bool SynisRecording;
@@ -44,18 +50,52 @@ public class ServerActionRecording : NetworkBehaviour
 
     void Start()
     {
+        filePathboxp = Path.Combine(Application.dataPath, "RecordData", "BoxPosData.json");
+        filePathboxr = Path.Combine(Application.dataPath, "RecordData", "BoxRotData.json");
+        filePathp = Path.Combine(Application.dataPath,"RecordData", "MainPosData.json");
+        filePathr = Path.Combine(Application.dataPath,"RecordData", "MainRotData.json");
+
+        var directoryPath = Path.GetDirectoryName(filePathboxp);
+        isRecording = false;
+        setting = new JsonSerializerSettings
+        {
+            ReferenceLoopHandling = ReferenceLoopHandling.Ignore
+        };
+        if (!Directory.Exists(directoryPath))
+        {
+            Directory.CreateDirectory(directoryPath);
+        }
         if(isServer){
-            recordButton.GetComponent<Button>().onClick.AddListener(ToggleRecording);
-            stopButton.GetComponent<Button>().onClick.AddListener(ToggleRecording);
+            recordButton.GetComponent<Button>().onClick.AddListener(Toggle);
+            stopButton.GetComponent<Button>().onClick.AddListener(Toggle);
+            //syncButton.GetComponent<Button>().onClick.AddListener(SyncData);
             record = recordSelect.GetComponent<TMP_Dropdown>();
+            
+        }else if(isClient){
             camerapositions = new List<Vector3>();
             camerarotations = new List<Quaternion>();
             Boxposts = new List<List<Vector3>>();
             Boxrotas = new List<List<Quaternion>>();
             positionrecords = new List<List<Vector3>>();
             rotationrecords = new List<List<Quaternion>>();
+            Synpositionrecords = new List<List<Vector3>>();
+            Synrotationrecords = new List<List<Quaternion>>();
             SynBoxpositions = new List<List<List<Vector3>>>();
             SynBoxrotations = new List<List<List<Quaternion>>>();
+            Boxpositions = new List<List<List<Vector3>>>();
+            Boxrotations = new List<List<List<Quaternion>>>();
+            positionrecords = LoadMPData(filePathp);        
+            if(NumOfRecords() > 0){
+                SendNumberofRecords(NumOfRecords());
+                rotationrecords = LoadMRData(filePathr);
+                SynBoxpositions = LoadBPData(filePathboxp);
+                SynBoxrotations = LoadBRData(filePathboxr);
+                Synpositionrecords = LoadMPData(filePathp);
+                Synrotationrecords = LoadMRData(filePathr);
+                Boxpositions = LoadBPData(filePathboxp);
+                Boxrotations = LoadBRData(filePathboxr);
+                Debug.Log("Send the Records "+ NumOfRecords());
+            }
             timeText.text = "0.0s";
         }
     }
@@ -64,6 +104,11 @@ public class ServerActionRecording : NetworkBehaviour
     {
         if (isRecording && isServer)
         {
+            
+            recordingTime += Time.deltaTime;
+            timeText.text = recordingTime.ToString("F1") + "s";
+        }else if(isRecording && isClient && !isServer){
+
             timer += Time.deltaTime;
 
             // Record the action of the camera as the time interval
@@ -79,77 +124,189 @@ public class ServerActionRecording : NetworkBehaviour
                 }
                 timer = 0;
             }
-            recordingTime += Time.deltaTime;
-            timeText.text = recordingTime.ToString("F1") + "s";
-        }else if(isClient && !isServer){
-
         }
     }
-
+    [Command(requiresAuthority = false)]
+    public void SendNumberofRecords(int num){
+        UpdateRecords(num);
+    }
+    void UpdateRecords(int num){
+        Debug.Log("Receive the Records " + num);
+        recordSelect.SetActive(true);
+        
+        for(int i = 0; i < num; i++){
+            countRecord++;
+            // Add the option to recordSelect dropdown
+            record.options.Add(new TMP_Dropdown.OptionData("Record " + countRecord));
+        }
+    }
+    void SyncData(){
+        SynrecordData(positionrecords, rotationrecords, SynBoxpositions, SynBoxrotations);
+    }
+    void Toggle(){
+        ToggleRecordingServer();
+        ToggleRecordingClient();
+    }
+    [Server]
+    void ToggleRecordingServer(){
+        ToggleRecording();
+    }
+    [ClientRpc]
+    void ToggleRecordingClient(){
+        if(isClient && !isServer){
+            ToggleRecording();
+        }
+    }
+    
     void ToggleRecording()
     {
         isRecording = !isRecording;
-        // SynisRecording = isRecording;
         recordingTime = 0;  // Reset the recording time
-        if (isRecording)
+        if (isRecording && isServer)
         {
             // Start to record the action
             recordButton.SetActive(false);
             stopButton.SetActive(true);
+        }else if(isRecording && isClient){
             ClearCameraposition();
             ClearCamerarotation();
             ClearBoxpositions();
             ClearBoxrotations();
         }
-        else
+        else if(!isRecording && isServer)
         {
             // Stop to record the action
             recordButton.SetActive(true);
             stopButton.SetActive(false);
             recordSelect.SetActive(true);
-            positionrecords.Add(camerapositions);
-            rotationrecords.Add(camerarotations);
-            SynBoxpositions.Add(Boxposts);
-            SynBoxrotations.Add(Boxrotas);
-
-            // Syn the record data to all clients
-            SynrecordData(positionrecords, rotationrecords, SynBoxpositions, SynBoxrotations);
+            // syncButton.SetActive(true);
+            countRecord++;
 
             // Add the option to recordSelect dropdown
-            record.options.Add(new TMP_Dropdown.OptionData("Record " + NumOfSevRecords().ToString()));
-
+            record.options.Add(new TMP_Dropdown.OptionData("Record " + countRecord));
+        }else if(!isRecording && isClient){
+            
+            Synpositionrecords.Add(camerapositions);
+            Synrotationrecords.Add(camerarotations);
+            Boxpositions.Add(Boxposts);
+            Boxrotations.Add(Boxrotas);
+            SaveBPData(Boxpositions, filePathboxp);
+            SaveBRData(Boxrotations, filePathboxr);
+            SaveMPData(Synpositionrecords, filePathp);
+            SaveMRData(Synrotationrecords, filePathr);
+            // Import the file to the Unity Editor
+            #if UNITY_EDITOR
+            UnityEditor.AssetDatabase.Refresh();
+            #endif
+            positionrecords = LoadMPData(filePathp);
+            rotationrecords = LoadMRData(filePathr);
+            SynBoxpositions = LoadBPData(filePathboxp);
+            SynBoxrotations = LoadBRData(filePathboxr);
         }
     }
-    private int NumOfSevRecords(){
-        return positionrecords.Count;
+    public void SaveBPData(List<List<List<Vector3>>> data, string path)
+    {   
+        string json = JsonConvert.SerializeObject(data, setting);
+        File.WriteAllText(path, json);
+    }
+    public void SaveBRData(List<List<List<Quaternion>>> data, string path)
+    {   
+        string json = JsonConvert.SerializeObject(data, setting);
+        File.WriteAllText(path, json);
+    }
+    public void SaveMPData(List<List<Vector3>> data, string path)
+    {   
+        string json = JsonConvert.SerializeObject(data, setting);
+        File.WriteAllText(path, json);
+    }
+    public void SaveMRData(List<List<Quaternion>> data, string path)
+    {   
+        string json = JsonConvert.SerializeObject(data, setting);
+        File.WriteAllText(path, json);
+    }
+    public List<List<Vector3>> LoadMPData(string path)
+    {
+        if (File.Exists(path))
+        {
+            string json = File.ReadAllText(path);
+            
+            return JsonConvert.DeserializeObject<List<List<Vector3>>>(json);
+        }
+        else
+        {
+            Debug.LogError("File not found");
+            return new List<List<Vector3>>();
+        }
+    }
+    public List<List<Quaternion>> LoadMRData(string path)
+    {
+        if (File.Exists(path))
+        {
+            string json = File.ReadAllText(path);
+            
+            return JsonConvert.DeserializeObject<List<List<Quaternion>>>(json);
+        }
+        else
+        {
+            Debug.LogError("File not found");
+            return new List<List<Quaternion>>();
+        }
+    }
+    public List<List<List<Vector3>>> LoadBPData(string path)
+    {
+        if (File.Exists(path))
+        {
+            string json = File.ReadAllText(path);
+            
+            return JsonConvert.DeserializeObject<List<List<List<Vector3>>>>(json);
+        }
+        else
+        {
+            Debug.LogError("File not found");
+            return new List<List<List<Vector3>>>();
+        }
+    }
+    public List<List<List<Quaternion>>> LoadBRData(string path)
+    {
+        if (File.Exists(path))
+        {
+            string json = File.ReadAllText(path);
+            
+            return JsonConvert.DeserializeObject<List<List<List<Quaternion>>>>(json);
+        }
+        else
+        {
+            Debug.LogError("File not found");
+            return new List<List<List<Quaternion>>>();
+        }
     }
     public int NumOfRecords(){
-        return Synpositionrecords.Count;
+        return positionrecords.Count;
     }
     public int Numofactions(int index){
-        return Synpositionrecords[index].Count;
+        return positionrecords[index].Count;
     }
     public Vector3 GetCamerapositions(int id, int index){
         if (id < NumOfRecords() && index < Numofactions(id)){
-            return Synpositionrecords[id][index];
+            return positionrecords[id][index];
         }
         return new Vector3(0, 0, 0);
     }
     public Quaternion GetCamerarotations(int id, int index){
         if (id < NumOfRecords() && index < Numofactions(id)){
-            return Synrotationrecords[id][index];
+            return rotationrecords[id][index];
         }
         return new Quaternion(0, 0, 0, 0);
     }
     public List<Vector3> GetBoxpositions(int id, int index){
         if (id < NumOfRecords() && index < Numofactions(id)){
-            return Boxpositions[id][index];
+            return SynBoxpositions[id][index];
         }
         return new List<Vector3>();
     }
     public List<Quaternion> GetBoxrotations(int id, int index){
         if (id < NumOfRecords() && index < Numofactions(id)){
-            return Boxrotations[id][index];
+            return SynBoxrotations[id][index];
         }
         return new List<Quaternion>();
     }

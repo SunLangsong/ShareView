@@ -710,7 +710,6 @@ public class VRHostCameraControl : NetworkBehaviour
         syncedPosition = pos;
         syncedRotation = rot;
     }
-    // [ClientRpc]
     
     // Initiate the record to play
     [ClientRpc]
