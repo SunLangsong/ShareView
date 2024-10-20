@@ -50,28 +50,16 @@ public class ServerActionRecording : NetworkBehaviour
 
     void Start()
     {
-        filePathboxp = Path.Combine(Application.dataPath, "RecordData", "BoxPosData.json");
-        filePathboxr = Path.Combine(Application.dataPath, "RecordData", "BoxRotData.json");
-        filePathp = Path.Combine(Application.dataPath,"RecordData", "MainPosData.json");
-        filePathr = Path.Combine(Application.dataPath,"RecordData", "MainRotData.json");
-
-        var directoryPath = Path.GetDirectoryName(filePathboxp);
         isRecording = false;
-        setting = new JsonSerializerSettings
-        {
-            ReferenceLoopHandling = ReferenceLoopHandling.Ignore
-        };
-        if (!Directory.Exists(directoryPath))
-        {
-            Directory.CreateDirectory(directoryPath);
-        }
+        
         if(isServer){
+            syncButton.SetActive(true);
             recordButton.GetComponent<Button>().onClick.AddListener(Toggle);
             stopButton.GetComponent<Button>().onClick.AddListener(Toggle);
-            //syncButton.GetComponent<Button>().onClick.AddListener(SyncData);
+            syncButton.GetComponent<Button>().onClick.AddListener(SyncData);
             record = recordSelect.GetComponent<TMP_Dropdown>();
             
-        }else if(isClient){
+        }else if(isClient && !isServer){
             camerapositions = new List<Vector3>();
             camerarotations = new List<Quaternion>();
             Boxposts = new List<List<Vector3>>();
@@ -84,19 +72,23 @@ public class ServerActionRecording : NetworkBehaviour
             SynBoxrotations = new List<List<List<Quaternion>>>();
             Boxpositions = new List<List<List<Vector3>>>();
             Boxrotations = new List<List<List<Quaternion>>>();
-            positionrecords = LoadMPData(filePathp);        
-            if(NumOfRecords() > 0){
-                SendNumberofRecords(NumOfRecords());
-                rotationrecords = LoadMRData(filePathr);
-                SynBoxpositions = LoadBPData(filePathboxp);
-                SynBoxrotations = LoadBRData(filePathboxr);
-                Synpositionrecords = LoadMPData(filePathp);
-                Synrotationrecords = LoadMRData(filePathr);
-                Boxpositions = LoadBPData(filePathboxp);
-                Boxrotations = LoadBRData(filePathboxr);
-                Debug.Log("Send the Records "+ NumOfRecords());
-            }
+                   
+            
             timeText.text = "0.0s";
+            filePathboxp = Path.Combine(Application.dataPath, "RecordData", "BoxPosData.json");
+            filePathboxr = Path.Combine(Application.dataPath, "RecordData", "BoxRotData.json");
+            filePathp = Path.Combine(Application.dataPath,"RecordData", "MainPosData.json");
+            filePathr = Path.Combine(Application.dataPath,"RecordData", "MainRotData.json");
+
+            var directoryPath = Path.GetDirectoryName(filePathboxp);
+            setting = new JsonSerializerSettings
+            {
+                ReferenceLoopHandling = ReferenceLoopHandling.Ignore
+            };
+            if (!Directory.Exists(directoryPath))
+            {
+                Directory.CreateDirectory(directoryPath);
+            }
         }
     }
 
@@ -133,15 +125,31 @@ public class ServerActionRecording : NetworkBehaviour
     void UpdateRecords(int num){
         Debug.Log("Receive the Records " + num);
         recordSelect.SetActive(true);
-        
-        for(int i = 0; i < num; i++){
+        int temp = num - countRecord;
+        for(int i = 0; i < temp; i++){
             countRecord++;
             // Add the option to recordSelect dropdown
             record.options.Add(new TMP_Dropdown.OptionData("Record " + countRecord));
         }
     }
+    [ClientRpc]
     void SyncData(){
-        SynrecordData(positionrecords, rotationrecords, SynBoxpositions, SynBoxrotations);
+        // SynrecordData(positionrecords, rotationrecords, SynBoxpositions, SynBoxrotations);
+        if(!isServer){
+            positionrecords = LoadMPData(filePathp); 
+            if(NumOfRecords() > 0){
+                SendNumberofRecords(NumOfRecords());
+                rotationrecords = LoadMRData(filePathr);
+                SynBoxpositions = LoadBPData(filePathboxp);
+                SynBoxrotations = LoadBRData(filePathboxr);
+                Synpositionrecords = LoadMPData(filePathp);
+                Synrotationrecords = LoadMRData(filePathr);
+                Boxpositions = LoadBPData(filePathboxp);
+                Boxrotations = LoadBRData(filePathboxr);
+                Debug.Log("Send the Records "+ NumOfRecords());
+                Debug.Log(filePathboxp);
+            }
+        }
     }
     void Toggle(){
         ToggleRecordingServer();
@@ -153,7 +161,7 @@ public class ServerActionRecording : NetworkBehaviour
     }
     [ClientRpc]
     void ToggleRecordingClient(){
-        if(isClient && !isServer){
+        if(!isServer){
             ToggleRecording();
         }
     }
@@ -162,6 +170,7 @@ public class ServerActionRecording : NetworkBehaviour
     {
         isRecording = !isRecording;
         recordingTime = 0;  // Reset the recording time
+        Debug.Log("StartRecord");
         if (isRecording && isServer)
         {
             // Start to record the action
