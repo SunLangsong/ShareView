@@ -236,7 +236,7 @@ public class VRHostCameraControl : NetworkBehaviour
                     
                     maincamera.transform.position = TempPosition;
                     maincamera.transform.rotation = TempRotation;
-                    subcamera.transform.position = new Vector3(TempPosition.x + 6.5f, TempPosition.y + 2.0f, TempPosition.z + 40f);
+                    subcamera.transform.position = new Vector3(TempPosition.x + 6.5f, TempPosition.y, TempPosition.z + 42f);
                     
                 }else{
                     maincamera.transform.position = TempPosition;
@@ -264,7 +264,7 @@ public class VRHostCameraControl : NetworkBehaviour
                     }else if(masktype == 5){
                         maincamera.transform.position = TempPosition;
                         maincamera.transform.rotation = TempRotation;
-                        subcamera.transform.position = new Vector3(TempPosition.x + 6.5f, TempPosition.y + 2.0f, TempPosition.z + 40f);
+                        subcamera.transform.position = new Vector3(TempPosition.x + 6.5f, TempPosition.y, TempPosition.z + 42f);
                     }
                     for(int i = 0; i < 30; i++){
                         Boxes[i].transform.position = TempBoxpositions[i];
@@ -299,7 +299,7 @@ public class VRHostCameraControl : NetworkBehaviour
                         // Update the camera data
                         maincamera.transform.position = syncedPosition;
                         maincamera.transform.rotation = syncedRotation;
-                        subcamera.transform.position = new Vector3(syncedPosition.x + 6.5f, syncedPosition.y + 2.0f, syncedPosition.z + 40f);
+                        subcamera.transform.position = new Vector3(syncedPosition.x + 6.5f, syncedPosition.y, syncedPosition.z + 42f);
                     }
                     for(int i = 0; i < 30; i++){
                         Boxes[i].transform.position = BoxPositions[i];
