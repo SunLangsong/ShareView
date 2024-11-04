@@ -5,6 +5,8 @@ using Mirror;
 using Newtonsoft.Json;
 using System.IO;
 using Button = UnityEngine.UI.Button;
+using System.Collections;
+using UnityEngine.UIElements;
 public class ServerActionRecording : NetworkBehaviour
 {
     public GameObject recordButton;
@@ -17,11 +19,13 @@ public class ServerActionRecording : NetworkBehaviour
     // [SyncVar]
     private bool isRecording = false;
     private float recordingTime = 0.0f;
-    private float recordInterval = 1.0f / 35.0f;
+    private float recordInterval = 1.0f / 15.0f;
     private float timer;
     public Transform serverCameraTransform;
     public List<Transform> Boxtrasforms;
     public Transform Centerposition;
+    List<Vector3> CheckRecordbp = new List<Vector3>();
+    List<Quaternion> CheckRecordbr = new List<Quaternion>();
     private List<Vector3> camerapositions;
     private List<List<Vector3>> Boxposts;
     private List<List<Quaternion>> Boxrotas;
@@ -106,17 +110,28 @@ public class ServerActionRecording : NetworkBehaviour
             // Record the action of the camera as the time interval
             if (timer >= recordInterval)
             {
-                camerapositions.Add(serverCameraTransform.position);
-                camerarotations.Add(serverCameraTransform.rotation);
-                Boxposts.Add(new List<Vector3>());
-                Boxrotas.Add(new List<Quaternion>());
-                for(int i = 0; i < 30; i++){
-                    Boxposts[Boxposts.Count - 1].Add(Boxtrasforms[i].position);
-                    Boxrotas[Boxrotas.Count - 1].Add(Boxtrasforms[i].rotation);
-                }
-                timer = 0;
+                StartCoroutine(RecordRoutine());
             }
         }
+    }
+    private IEnumerator RecordRoutine(){
+        List<Vector3> tempbp = new List<Vector3>();
+        List<Quaternion> tempbr = new List<Quaternion>();
+        bool flag = true;
+        for(int i = 0; i < 30; i++){
+            tempbp.Add(Boxtrasforms[i].position);
+            tempbr.Add(Boxtrasforms[i].rotation);
+        }
+        // Debug.Log(tempbp[0]);
+        if(flag){
+            camerapositions.Add(serverCameraTransform.position);
+            camerarotations.Add(serverCameraTransform.rotation);
+            Boxposts.Add(tempbp);Boxrotas.Add(tempbr);
+            CheckRecordbp = tempbp;
+            CheckRecordbr = tempbr;
+        }
+        timer = 0;
+        yield return new WaitForSeconds(recordingTime / 2);
     }
     [Command(requiresAuthority = false)]
     public void SendNumberofRecords(int num){
@@ -170,13 +185,14 @@ public class ServerActionRecording : NetworkBehaviour
     {
         isRecording = !isRecording;
         recordingTime = 0;  // Reset the recording time
-        Debug.Log("StartRecord");
+        
         if (isRecording && isServer)
         {
             // Start to record the action
             recordButton.SetActive(false);
             stopButton.SetActive(true);
         }else if(isRecording && isClient){
+            Debug.Log("StartRecord");
             ClearCameraposition();
             ClearCamerarotation();
             ClearBoxpositions();
@@ -199,6 +215,10 @@ public class ServerActionRecording : NetworkBehaviour
             Synrotationrecords.Add(camerarotations);
             Boxpositions.Add(Boxposts);
             Boxrotations.Add(Boxrotas);
+            /*SynBoxpositions = Boxpositions;
+            SynBoxrotations = Boxrotations;
+            positionrecords = Synpositionrecords;
+            rotationrecords = Synrotationrecords;*/
             SaveBPData(Boxpositions, filePathboxp);
             SaveBRData(Boxrotations, filePathboxr);
             SaveMPData(Synpositionrecords, filePathp);
@@ -211,6 +231,7 @@ public class ServerActionRecording : NetworkBehaviour
             rotationrecords = LoadMRData(filePathr);
             SynBoxpositions = LoadBPData(filePathboxp);
             SynBoxrotations = LoadBRData(filePathboxr);
+            Debug.Log("StopRecord");
         }
     }
     public void SaveBPData(List<List<List<Vector3>>> data, string path)

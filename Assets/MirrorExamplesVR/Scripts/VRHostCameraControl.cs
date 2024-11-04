@@ -61,7 +61,7 @@ public class VRHostCameraControl : NetworkBehaviour
     private List<Image> lines = new List<Image>();
     public Image lineImagePrefab;
     public Image DotImagePrefab;
-    private bool dotIsMoving;
+    // private bool dotIsMoving;
     public Material lineMaterial;
     public float lineWidth = 20f;
     public float lineDisplayDuration = 0.9f;
@@ -120,7 +120,7 @@ public class VRHostCameraControl : NetworkBehaviour
 
         intervalForDotChange = 1.0f / 6.0f;
 
-        dotIsMoving = true;
+        // dotIsMoving = true;
 
         rotangle = 0.0f;
         
@@ -242,10 +242,13 @@ public class VRHostCameraControl : NetworkBehaviour
                     maincamera.transform.position = TempPosition;
                     maincamera.transform.rotation = TempRotation;
                 }
+                
                 for(int i = 0; i < 30; i++){
                     Boxes[i].transform.position = TempBoxpositions[i];
                     Boxes[i].transform.rotation = TempBoxrotations[i];
                 }
+                
+                
                 
                 //return;
                 
@@ -266,6 +269,7 @@ public class VRHostCameraControl : NetworkBehaviour
                         maincamera.transform.rotation = TempRotation;
                         subcamera.transform.position = new Vector3(TempPosition.x + 6.5f, TempPosition.y, TempPosition.z + 42f);
                     }
+                    // Debug.Log(TempBoxpositions[0]);
                     for(int i = 0; i < 30; i++){
                         Boxes[i].transform.position = TempBoxpositions[i];
                         Boxes[i].transform.rotation = TempBoxrotations[i];
@@ -275,7 +279,7 @@ public class VRHostCameraControl : NetworkBehaviour
                     // Centerposition.rotation = ServerCenterRatation;
 
                     // Read the record action data with the interval of fps
-                    index += (35 * frameRateInterval).ConvertTo<int>(); 
+                    index += (15 * frameRateInterval).ConvertTo<int>(); 
 
                     // If read all the action of one record, stop reading the record
                     if(index >= actionrecord.Numofactions(recordtype)){
@@ -302,10 +306,11 @@ public class VRHostCameraControl : NetworkBehaviour
                         subcamera.transform.position = new Vector3(syncedPosition.x + 6.5f, syncedPosition.y, syncedPosition.z + 42f);
                     }
                     for(int i = 0; i < 30; i++){
-                        Boxes[i].transform.position = BoxPositions[i];
-                        Boxes[i].transform.rotation = BoxRotations[i];
+                        
                         TempBoxpositions[i] = BoxPositions[i];
                         TempBoxrotations[i] = BoxRotations[i];
+                        Boxes[i].transform.position = TempBoxpositions[i];
+                        Boxes[i].transform.rotation = TempBoxrotations[i];
                     }
                     
                     TempPosition = syncedPosition;
