@@ -118,7 +118,7 @@ public class VRHostCameraControl : NetworkBehaviour
 
         intervalForCenterChange = 1.0f / 3.0f;
 
-        intervalForDotChange = 1.0f / 6.0f;
+        intervalForDotChange = 1.0f / 60.0f;
 
         // dotIsMoving = true;
 
@@ -129,14 +129,14 @@ public class VRHostCameraControl : NetworkBehaviour
             TempBoxrotations.Add(new Quaternion(0f, 0f, 0f, 0f));
         }
 
-        starts.Add(new Vector3(-110f, -70f, -2f));
-        starts.Add(new Vector3(110f, -70f, -2f));
-        starts.Add(new Vector3(-110f, 70f, -2f));
-        starts.Add(new Vector3(110f, 70f, -2f));
-        starts.Add(new Vector3(-110f, 0f, -2f));
-        starts.Add(new Vector3(110f, 0f, -2f));
-        starts.Add(new Vector3(0f, -70f, -2f));
-        starts.Add(new Vector3(0f, 70f, -2f));
+        starts.Add(new Vector3(-120f, -75f, -2f));
+        starts.Add(new Vector3(120f, -75f, -2f));
+        starts.Add(new Vector3(-120f, 75f, -2f));
+        starts.Add(new Vector3(120f, 75f, -2f));
+        starts.Add(new Vector3(-120f, 0f, -2f));
+        starts.Add(new Vector3(120f, 0f, -2f));
+        starts.Add(new Vector3(0f, -75f, -2f));
+        starts.Add(new Vector3(0f, 75f, -2f));
         ends.Add(new Vector3(0f, 0f, 0f));
         ends.Add(new Vector3(0f, 0f, 0f));
         ends.Add(new Vector3(0f, 0f, 0f));
@@ -322,14 +322,14 @@ public class VRHostCameraControl : NetworkBehaviour
                 if(nextsecond <= nextFrameTime - 1.5f){
                     nextsecond = nextFrameTime;
                     //start = new Vector3(-110f, -70f, -2f);
-                    starts[0] = new Vector3(-110f, -70f, -2f);
-                    starts[1] = new Vector3(110f, -70f, -2f);
-                    starts[2] = new Vector3(-110f, 70f, -2f);
-                    starts[3] = new Vector3(110f, 70f, -2f);
-                    starts[4] = new Vector3(-110f, 0f, -2f);
-                    starts[5] = new Vector3(110f, 0f, -2f);
-                    starts[6] = new Vector3(0f, -70f, -2f);
-                    starts[7] = new Vector3(0f, 70f, -2f);
+                    starts[0] = new Vector3(-120f, -75f, -2f);
+                    starts[1] = new Vector3(120f, -75f, -2f);
+                    starts[2] = new Vector3(-120f, 75f, -2f);
+                    starts[3] = new Vector3(120f, 75f, -2f);
+                    starts[4] = new Vector3(-120f, 0f, -2f);
+                    starts[5] = new Vector3(120f, 0f, -2f);
+                    starts[6] = new Vector3(0f, -75f, -2f);
+                    starts[7] = new Vector3(0f, 75f, -2f);
                     ends[0] = new Vector3(0f, 0f, 0f);
                     ends[1] = new Vector3(0f, 0f, 0f);
                     ends[2] = new Vector3(0f, 0f, 0f);
@@ -386,13 +386,13 @@ public class VRHostCameraControl : NetworkBehaviour
         PreMainRotationDot = TempRotation;
 
         // Draw the line when the angle between main and sub camera is over 10. 
-        if(rotangle >= 10){
+        if(rotangle >= 2.5 ){
             // Mark.SetActive(true);
             // Mark.GetComponent<RectTransform>().localRotation = Quaternion.Euler(0.0f, 0.0f, uiRotation + 180);
 
             // Calculate the end point of the line
-            end = CalculateEndPoint(start, uiRotation + 180, rotangle / 2);
-            Vector3 plus = CalculateEndPointToPlus(uiRotation + 180, rotangle / 2);
+            // end = CalculateEndPoint(start, uiRotation + 180, rotangle / 2);
+            Vector3 plus = CalculateEndPointToPlus(uiRotation + 180, rotangle * (1 + 6 / rotangle));
             for(int i = 0; i < sizeOfPoints; i++)
             {
                 ends[i] = new Vector3(starts[i].x + plus.x, starts[i].y + plus.y, starts[i].z);
@@ -415,8 +415,8 @@ public class VRHostCameraControl : NetworkBehaviour
             // Mark.GetComponent<RectTransform>().sizeDelta = new Vector2(Math.Abs(rotangle) / 2, 10);
         }else{
             // Mark.SetActive(false);
-            lines.ForEach(img => Destroy(img.gameObject));
-            lines.Clear();
+            //lines.ForEach(img => Destroy(img.gameObject));
+            //lines.Clear();
         }
     } 
     // Arrange the size of the center elliptic
@@ -445,8 +445,8 @@ public class VRHostCameraControl : NetworkBehaviour
         PreMainRotation = TempRotation;
 
         
-        Image_Mask1.GetComponent<RawImage>().material.SetFloat("_RadiusX", -2.0f / 1500.0f * Math.Abs(rotangle) + 0.23f);
-        Image_Mask1.GetComponent<RawImage>().material.SetFloat("_RadiusY", -2.0f / 1500.0f * Math.Abs(rotangle) + 0.18f);
+        Image_Mask1.GetComponent<RawImage>().material.SetFloat("_RadiusX", -2.0f / 1500.0f * Math.Abs(rotangle) + 0.25f);
+        Image_Mask1.GetComponent<RawImage>().material.SetFloat("_RadiusY", -2.0f / 1500.0f * Math.Abs(rotangle) + 0.20f);
     }
     float CalMotionAngle(Quaternion q1, Quaternion q2)
     {
@@ -522,7 +522,7 @@ public class VRHostCameraControl : NetworkBehaviour
     private void DrawDotInMask(){
 
         
-        //StopAllCoroutines();
+        // StopAllCoroutines();
         lines.ForEach(img => Destroy(img.gameObject));
         lines.Clear();
         // dotIsMoving = true;
@@ -540,25 +540,33 @@ public class VRHostCameraControl : NetworkBehaviour
             RectTransform dotRectTransform = dot.GetComponent<RectTransform>();
             dotRectTransform.sizeDelta = new Vector2(10f, 10f);
         }
-        
-        StartCoroutine(MoveDotCoroutine());
+        for(int i = 0; i < sizeOfPoints; i++){
+            // Move the dots with the line start-end
+            lines[i].rectTransform.localPosition = ends[i];
+        }
+        //StartCoroutine(MoveDotCoroutine());
     }
     private IEnumerator MoveDotCoroutine(){
         float elapsedTime = 0f;
 
+        if (lines.Count < sizeOfPoints || starts.Count != sizeOfPoints || ends.Count != sizeOfPoints)
+        {
+            Debug.LogError("Invalid data: Ensure lines, starts, and ends have the same count as sizeOfPoints.");
+            yield break;
+        }
         while(lines.Count >= sizeOfPoints && elapsedTime < intervalForDotChange){
             float t = elapsedTime / intervalForDotChange;
             for(int i = 0; i < sizeOfPoints; i++){
+                // Move the dots with the line start-end
                 lines[i].rectTransform.localPosition = Vector3.Lerp(starts[i], ends[i], t);
             }
 
             elapsedTime += Time.deltaTime;
 
-            yield return null;
+            yield return new WaitForSeconds(intervalForDotChange / 2);
         }
-        // lines[0].rectTransform.position = ends[0];
-
-        // dotIsMoving = false;
+        lines.ForEach(img => Destroy(img.gameObject));
+        lines.Clear();
     }
     // Remove the line after specify time
     private IEnumerator RemoveLineAfterDelay(Image lineRenderer, float duration)
@@ -584,7 +592,7 @@ public class VRHostCameraControl : NetworkBehaviour
                 frameRateInterval = 1.0f / 5.0f;
                 break;
             case 2:
-                frameRateInterval = 1.0f / 15.0f;
+                frameRateInterval = 1.0f / 17.0f;
                 break;
             case 3:
                 frameRateInterval = 1.0f / 25.0f;
