@@ -19,9 +19,11 @@ public class VRHostCameraControl : NetworkBehaviour
     public GameObject fovcamera;
     public GameObject Image_Mask;
     public GameObject Image_Mask1;
+    public GameObject White_Circle;
     public GameObject fpsSelect;
     public GameObject maskSelect;
     public GameObject recordStart;
+    public GameObject border;
     public GameObject recordTime;
     public GameObject recordSelect;
     public GameObject LeftHand;
@@ -162,6 +164,8 @@ public class VRHostCameraControl : NetworkBehaviour
             recordStart.SetActive(true);
             // Active the RecordText
             recordTime.SetActive(true);
+            // Active the Border trigger
+            border.SetActive(true);
             // Initiate the fpsdropdown
             dropdownfps = fpsSelect.GetComponent<TMP_Dropdown>();
             // Initiate the maskdropdown
@@ -189,6 +193,7 @@ public class VRHostCameraControl : NetworkBehaviour
                 masktype = mask.value;
                 UpdateClientMask(mask.value);
             });
+            border.GetComponent<Button>().onClick.AddListener(ActiveBorder);
         }
         if (isClient && !isServer) {
             // Close the action control of the Client HMD
@@ -360,6 +365,19 @@ public class VRHostCameraControl : NetworkBehaviour
             }
         }          
     }
+    //Change the condition of the Border
+    [ClientRpc]
+    void ActiveBorder(){
+        if(isClient && !isServer){
+            if(White_Circle.GetComponent<RawImage>().enabled){
+                White_Circle.SetActive(false);
+                White_Circle.GetComponent<RawImage>().enabled = false;
+            }else{
+                White_Circle.SetActive(true);
+                White_Circle.GetComponent<RawImage>().enabled = true;
+            }
+        }
+    }
     // Change the position of the points
     private void ChangetheDotPosition(){
         // Get the rotation of main and sub camera
@@ -447,6 +465,8 @@ public class VRHostCameraControl : NetworkBehaviour
         
         Image_Mask1.GetComponent<RawImage>().material.SetFloat("_RadiusX", -2.0f / 1500.0f * Math.Abs(rotangle) + 0.25f);
         Image_Mask1.GetComponent<RawImage>().material.SetFloat("_RadiusY", -2.0f / 1500.0f * Math.Abs(rotangle) + 0.20f);
+        White_Circle.GetComponent<RawImage>().material.SetFloat("_RadiusX", -2.0f / 1500.0f * Math.Abs(rotangle) + 0.25f);
+        White_Circle.GetComponent<RawImage>().material.SetFloat("_RadiusY", -2.0f / 1500.0f * Math.Abs(rotangle) + 0.20f);
     }
     float CalMotionAngle(Quaternion q1, Quaternion q2)
     {
