@@ -148,7 +148,7 @@ public class VRHostCameraControl : NetworkBehaviour
         ends.Add(new Vector3(0f, 0f, 0f));
         ends.Add(new Vector3(0f, 0f, 0f));
 
-        fpsText = GameObject.FindGameObjectWithTag("Fpsdisplay").GetComponent<TMP_Text>();
+        //fpsText = GameObject.FindGameObjectWithTag("Fpsdisplay").GetComponent<TMP_Text>();
 
         if(isServer){
             for(int i = 0; i < 30; i++){
@@ -404,13 +404,13 @@ public class VRHostCameraControl : NetworkBehaviour
         PreMainRotationDot = TempRotation;
 
         // Draw the line when the angle between main and sub camera is over 10. 
-        if(rotangle >= 2.5 ){
+        if(rotangle >= 2.7 ){
             // Mark.SetActive(true);
             // Mark.GetComponent<RectTransform>().localRotation = Quaternion.Euler(0.0f, 0.0f, uiRotation + 180);
 
             // Calculate the end point of the line
             // end = CalculateEndPoint(start, uiRotation + 180, rotangle / 2);
-            Vector3 plus = CalculateEndPointToPlus(uiRotation + 180, rotangle * (1 + 6 / rotangle));
+            Vector3 plus = CalculateEndPointToPlus(uiRotation, rotangle * 0.8f + 6 / rotangle);
             for(int i = 0; i < sizeOfPoints; i++)
             {
                 ends[i] = new Vector3(starts[i].x + plus.x, starts[i].y + plus.y, starts[i].z);
@@ -463,10 +463,10 @@ public class VRHostCameraControl : NetworkBehaviour
         PreMainRotation = TempRotation;
 
         
-        Image_Mask1.GetComponent<RawImage>().material.SetFloat("_RadiusX", -2.0f / 1500.0f * Math.Abs(rotangle) + 0.25f);
-        Image_Mask1.GetComponent<RawImage>().material.SetFloat("_RadiusY", -2.0f / 1500.0f * Math.Abs(rotangle) + 0.20f);
-        White_Circle.GetComponent<RawImage>().material.SetFloat("_RadiusX", -2.0f / 1500.0f * Math.Abs(rotangle) + 0.25f);
-        White_Circle.GetComponent<RawImage>().material.SetFloat("_RadiusY", -2.0f / 1500.0f * Math.Abs(rotangle) + 0.20f);
+        Image_Mask1.GetComponent<RawImage>().material.SetFloat("_RadiusX", -2.0f / 1500.0f * Math.Abs(rotangle) + 0.24f);
+        Image_Mask1.GetComponent<RawImage>().material.SetFloat("_RadiusY", -2.0f / 1500.0f * Math.Abs(rotangle) + 0.19f);
+        White_Circle.GetComponent<RawImage>().material.SetFloat("_RadiusX", -2.0f / 1500.0f * Math.Abs(rotangle) + 0.24f);
+        White_Circle.GetComponent<RawImage>().material.SetFloat("_RadiusY", -2.0f / 1500.0f * Math.Abs(rotangle) + 0.19f);
     }
     float CalMotionAngle(Quaternion q1, Quaternion q2)
     {
@@ -632,7 +632,7 @@ public class VRHostCameraControl : NetworkBehaviour
             float fps = count;
             startTime = Time.time;
             count = 0;
-            fpsText.text = $"{fps:0.} fps";
+            //fpsText.text = $"{fps:0.} fps";
         }
     }
     // Play the record

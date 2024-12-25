@@ -105,8 +105,8 @@ Material:
     - _Parallax: 0.005
     - _QueueOffset: 0
     - _Radius: 0.18
-    - _RadiusX: 0.25
-    - _RadiusY: 0.2
+    - _RadiusX: 0.23345892
+    - _RadiusY: 0.18345892
     - _ReceiveShadows: 1
     - _Smoothness: 0.5
     - _SmoothnessTextureChannel: 0
