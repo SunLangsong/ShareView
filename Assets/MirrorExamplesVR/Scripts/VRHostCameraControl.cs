@@ -8,6 +8,8 @@ using UnityEngine.UI;
 using UnityEngine.XR.Interaction.Toolkit.Samples.StarterAssets;
 using System.Collections;
 using System.Collections.Generic;
+using Newtonsoft.Json;
+using System.IO;
 using Unity.XR.CoreUtils;
 using System;
 public class VRHostCameraControl : NetworkBehaviour
@@ -44,9 +46,7 @@ public class VRHostCameraControl : NetworkBehaviour
     private float nextFrameTime = 0.0f;
     private float nextCenterTime = 0.0f;
     private float nextDotTime = 0.0f;
-
     private float nextsecond = 0.0f;
-
     public Transform Centerposition;
     public ServerActionRecording actionrecord;
     // The index of record to play 
@@ -82,6 +82,9 @@ public class VRHostCameraControl : NetworkBehaviour
     //[SyncVar]
     private Quaternion Box15rotation;
     private List<Quaternion> TempBoxrotations = new List<Quaternion>();
+
+    private List<Vector3> participantspos;
+    private List<Quaternion> participantsrot;
     private Quaternion syncedRotation;
 
     private Quaternion TempRotation;
@@ -94,6 +97,9 @@ public class VRHostCameraControl : NetworkBehaviour
 
     private Quaternion PreMainRotationDot;
 
+    private JsonSerializerSettings setting;
+    private string filePathpapos;
+    private string filePathparot;
     private float rotangle;
 
     private float intervalForCenterChange;
@@ -201,6 +207,20 @@ public class VRHostCameraControl : NetworkBehaviour
             maincamera.GetComponent<TrackedPoseDriver>().enabled = false;
             TempPosition = maincamera.transform.position;
             TempRotation = maincamera.transform.rotation;
+
+            participantspos = new List<Vector3>();
+            participantsrot = new List<Quaternion>();
+            filePathpapos = Path.Combine(Application.dataPath, "RecordData", "PaPosData.json");
+            filePathparot = Path.Combine(Application.dataPath, "RecordData", "PaRotData.json");
+            var directoryPath = Path.GetDirectoryName(filePathpapos);
+            setting = new JsonSerializerSettings
+            {
+                ReferenceLoopHandling = ReferenceLoopHandling.Ignore
+            };
+            if (!Directory.Exists(directoryPath))
+            {
+                Directory.CreateDirectory(directoryPath);
+            }
         }
     }
     void Update()
@@ -247,7 +267,10 @@ public class VRHostCameraControl : NetworkBehaviour
                     maincamera.transform.position = TempPosition;
                     maincamera.transform.rotation = TempRotation;
                 }
-                
+                if(play == true){
+                    participantspos.Add(TempPosition);
+                    participantsrot.Add(subcamera.transform.rotation);
+                }
                 for(int i = 0; i < 30; i++){
                     Boxes[i].transform.position = TempBoxpositions[i];
                     Boxes[i].transform.rotation = TempBoxrotations[i];
@@ -274,6 +297,8 @@ public class VRHostCameraControl : NetworkBehaviour
                         maincamera.transform.rotation = TempRotation;
                         subcamera.transform.position = new Vector3(TempPosition.x + 6.5f, TempPosition.y, TempPosition.z + 42f);
                     }
+                    participantspos.Add(TempPosition);
+                    participantsrot.Add(subcamera.transform.rotation);
                     // Debug.Log(TempBoxpositions[0]);
                     for(int i = 0; i < 30; i++){
                         Boxes[i].transform.position = TempBoxpositions[i];
@@ -289,6 +314,10 @@ public class VRHostCameraControl : NetworkBehaviour
                     // If read all the action of one record, stop reading the record
                     if(index >= actionrecord.Numofactions(recordtype)){
                         index = 0;
+                        SavePaPosData(participantspos, filePathpapos);
+                        SavePaRotData(participantsrot, filePathparot);
+                        participantspos = new List<Vector3>();
+                        participantsrot = new List<Quaternion>();
                         play = false;
                     }
                 }else{
@@ -364,6 +393,16 @@ public class VRHostCameraControl : NetworkBehaviour
                 }
             }
         }          
+    }
+    public void SavePaPosData(List<Vector3> data, string path)
+    {   
+        string json = JsonConvert.SerializeObject(data, setting);
+        File.WriteAllText(path, json);
+    }
+    public void SavePaRotData(List<Quaternion> data, string path)
+    {   
+        string json = JsonConvert.SerializeObject(data, setting);
+        File.WriteAllText(path, json);
     }
     //Change the condition of the Border
     [ClientRpc]
@@ -695,7 +734,7 @@ public class VRHostCameraControl : NetworkBehaviour
         
     }
     void SetCameraToLimitFov(bool flag){
-        subcamera.SetActive(flag);
+        //subcamera.SetActive(flag);
         Image_Mask.SetActive(flag);
         maincamera.GetComponent<TrackedPoseDriver>().enabled = flag;
         maincamera.GetComponent<TrackedPoseDriver>().trackingType = TrackedPoseDriver.TrackingType.RotationOnly;
@@ -722,10 +761,11 @@ public class VRHostCameraControl : NetworkBehaviour
             maincamera.GetComponent<Camera>().fieldOfView = 50f;
             subcamera.GetComponent<Camera>().fieldOfView = 80f;
         }else{
-            subcamera.GetComponent<TrackedPoseDriver>().enabled = flag;
+            //subcamera.GetComponent<TrackedPoseDriver>().enabled = flag;
             subcamera.GetComponent<Camera>().fieldOfView = 80f;
             maincamera.GetComponent<Camera>().fieldOfView = 60f;
-            subcamera.SetActive(flag);
+            //subcamera.SetActive(flag);
+
             //subcamera.GetComponent<TrackedPoseDriver>().trackingType = TrackedPoseDriver.TrackingType.RotationAndPosition;
         }
         
